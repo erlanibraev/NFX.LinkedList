@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using NFX.ApplicationModel.Pile;
-using NFX.IO.Net.Gate;
 
 namespace NFX.Utils
 {
@@ -142,12 +141,46 @@ namespace NFX.Utils
 
         public IEnumerator<T> GetEnumerator()
         {
-            return new LinkedListEnumenator<T>(this);
+            var result = new LinkedListEnumerator<T>(this);
+            return result;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
+    }
+
+    internal class  LinkedListEnumerator<T> : IEnumerator<T>
+    {
+
+        private readonly LinkedList<T> m_list;
+        private LinkedListNode<T> m_current_node;
+
+        public LinkedListEnumerator(LinkedList<T> list)
+        {
+            m_list = list;
+            m_current_node = list.First;
+        }
+
+        public void Dispose()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool MoveNext()
+        {
+            m_current_node = m_current_node?.Next;
+            return m_current_node != null;
+        }
+
+        public void Reset()
+        {
+            m_current_node = m_list.First;
+        }
+
+        object IEnumerator.Current => Current;
+
+        public T Current => m_current_node != null ? m_current_node.Value : default(T);
     }
 }
