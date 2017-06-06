@@ -6,7 +6,7 @@ using NFX.IO.Net.Gate;
 
 namespace NFX.Utils
 {
-    public class LinkedList<T> : ICollection<T>, ICollection
+    public class LinkedList<T> : IEnumerable<T>, IEnumerable
     {
         protected internal PilePointer m_pp_first { get; set; } = PilePointer.Invalid;
         protected internal PilePointer m_pp_self { get; set; } = PilePointer.Invalid;
@@ -131,61 +131,6 @@ namespace NFX.Utils
             throw new NotImplementedException();    
         }
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        public void Add(T item)
-        {
-            AddLast(item);
-        }
-
-        public void Clear()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Contains(T item)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void CopyTo(T[] array, int arrayIndex)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Remove(T item)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void CopyTo(Array array, int index)
-        {
-            throw new NotImplementedException();
-        }
-
-        int ICollection.Count
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public object SyncRoot { get; }
-        public bool IsSynchronized { get; }
-
-        int ICollection<T>.Count
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public bool IsReadOnly { get; }
-
         private void addFirstLastOnly(LinkedListNode<T> node)
         {
             m_pp_first = node.m_pp_self;
@@ -195,5 +140,14 @@ namespace NFX.Utils
         }
 
 
+        public IEnumerator<T> GetEnumerator()
+        {
+            return new LinkedListEnumenator<T>(this);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 }
