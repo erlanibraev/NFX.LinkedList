@@ -28,5 +28,14 @@ namespace NFX.Utils
             Assert.IsNull(test.Value);
         }
 
+        [Test]
+        public void SimpleValueNullTest()
+        {
+            var test = new LinkedListNode<string>("TEST");
+            Assert.AreEqual(test.Value, "TEST");
+            test.Value = null;
+            Assert.IsNull(test.Value);
+        }
+
     }
 }

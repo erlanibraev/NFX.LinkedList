@@ -39,6 +39,10 @@ namespace NFX.Utils
                     m_pp_value = PileSinglton.Pile.Put(value);
                     PileSinglton.Pile.Put(m_pp_self, this);
                 }
+                else
+                {
+                    m_pp_value = PilePointer.Invalid;
+                }
             }
             
         }
