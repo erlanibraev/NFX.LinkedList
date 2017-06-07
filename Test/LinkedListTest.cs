@@ -27,9 +27,9 @@ namespace NFX.Utils
         public void SimpleTest()
         {
             var test = new LinkedList<int>(m_pile);
-            Assert.NotNull(test);
-            Assert.IsNull(test.First);
-            Assert.IsNull(test.Last);
+            Aver.IsNotNull(test);
+            Aver.IsNull(test.First);
+            Aver.IsNull(test.Last);
         }
 
         [Test]
@@ -37,12 +37,13 @@ namespace NFX.Utils
         {
             const int testValue = 11;
             var test = new LinkedList<int>(m_pile, testValue);
-            Assert.NotNull(test);
-            Assert.NotNull(test.First);
-            Assert.NotNull(test.Last);
-            Assert.AreEqual(test.First.Value, testValue);
-            Assert.AreEqual(test.Last.Value, testValue);
-            Assert.AreEqual(test.First.Value, test.Last.Value);
+            
+            Aver.IsNotNull(test);
+            Aver.IsNotNull(test.First);
+            Aver.IsNotNull(test.Last);
+            Aver.AreEqual(test.First.Value, testValue);
+            Aver.AreEqual(test.Last.Value, testValue);
+            Aver.AreEqual(test.First.Value, test.Last.Value);
         }
 
         [Test]
@@ -51,10 +52,10 @@ namespace NFX.Utils
             const int testValue = 11;
             var test = new LinkedList<int>(m_pile);
             test.AddFirst(testValue);
-            Assert.NotNull(test);
-            Assert.NotNull(test.First);
-            Assert.AreEqual(test.First.Value, testValue);
-            Assert.AreEqual(test.Last.Value, testValue);
+            Aver.IsNotNull(test);
+            Aver.IsNotNull(test.First);
+            Aver.AreEqual(test.First.Value, testValue);
+            Aver.AreEqual(test.Last.Value, testValue);
         }
 
         [Test]
@@ -63,14 +64,14 @@ namespace NFX.Utils
             const int testValue = 11;
             var test = new LinkedList<int>(m_pile, testValue);
             test.AddFirst(testValue - 1);
-            Assert.NotNull(test);
-            Assert.NotNull(test.First);
-            Assert.NotNull(test.First.Next);
-            Assert.NotNull(test.Last);
-            Assert.NotNull(test.Last.Previous);
-            Assert.AreEqual(test.First.Value, testValue - 1);
-            Assert.AreEqual(test.Last.Value, testValue);
-            Assert.AreEqual(test.First.Next.Value, testValue);
+            Aver.IsNotNull(test);
+            Aver.IsNotNull(test.First);
+            Aver.IsNotNull(test.First.Next);
+            Aver.IsNotNull(test.Last);
+            Aver.IsNotNull(test.Last.Previous);
+            Aver.AreEqual(test.First.Value, testValue - 1);
+            Aver.AreEqual(test.Last.Value, testValue);
+            Aver.AreEqual(test.First.Next.Value, testValue);
         }
 
         [Test]
@@ -79,11 +80,11 @@ namespace NFX.Utils
             const int testValue = 11;
             var test = new LinkedList<int>(m_pile);
             test.AddLast(testValue);
-            Assert.NotNull(test);
-            Assert.NotNull(test.First);
-            Assert.NotNull(test.Last);
-            Assert.AreEqual(test.Last.Value, testValue);
-            Assert.AreEqual(test.First.Value, testValue);
+            Aver.IsNotNull(test);
+            Aver.IsNotNull(test.First);
+            Aver.IsNotNull(test.Last);
+            Aver.AreEqual(test.Last.Value, testValue);
+            Aver.AreEqual(test.First.Value, testValue);
         }
 
         [Test]
@@ -92,14 +93,14 @@ namespace NFX.Utils
             const int testValue = 11;
             var test = new LinkedList<int>(m_pile, testValue);
             test.AddLast(testValue + 1);
-            Assert.NotNull(test);
-            Assert.NotNull(test.First);
-            Assert.NotNull(test.First.Next);
-            Assert.NotNull(test.Last);
-            Assert.NotNull(test.Last.Previous);
-            Assert.AreEqual(test.First.Value, testValue);
-            Assert.AreEqual(test.Last.Value, testValue + 1);
-            Assert.AreEqual(test.Last.Previous.Value, testValue);
+            Aver.IsNotNull(test);
+            Aver.IsNotNull(test.First);
+            Aver.IsNotNull(test.First.Next);
+            Aver.IsNotNull(test.Last);
+            Aver.IsNotNull(test.Last.Previous);
+            Aver.AreEqual(test.First.Value, testValue);
+            Aver.AreEqual(test.Last.Value, testValue + 1);
+            Aver.AreEqual(test.Last.Previous.Value, testValue);
         }
 
         [Test]
@@ -107,12 +108,12 @@ namespace NFX.Utils
         {
             const int testValue = 11;
             var test = new LinkedList<int>(m_pile, testValue);
-            Assert.NotNull(test);
-            Assert.NotNull(test.First);
-            Assert.AreEqual(test.First.Value, testValue);
+            Aver.IsNotNull(test);
+            Aver.IsNotNull(test.First);
+            Aver.AreEqual(test.First.Value, testValue);
             test.Remove(test.First);
-            Assert.IsNull(test.First);
-            Assert.IsNull(test.Last);
+            Aver.IsNull(test.First);
+            Aver.IsNull(test.Last);
         }
 
         [Test]
@@ -121,12 +122,12 @@ namespace NFX.Utils
             const int testValue = 11;
             var test = new LinkedList<int>(m_pile, testValue);
             var next = test.AddAfter(test.First, testValue + 1);
-            Assert.AreEqual(test.First.Value, testValue);
-            Assert.AreEqual(test.First.Next.Value, testValue +1);
+            Aver.AreEqual(test.First.Value, testValue);
+            Aver.AreEqual(test.First.Next.Value, testValue +1);
             test.Remove(test.First);
-            Assert.AreEqual(test.First.Value, testValue + 1);
-            Assert.AreEqual(test.First, test.Last);
-            Assert.IsNull(test.First.Next);
+            Aver.AreEqual(test.First.Value, testValue + 1);
+            Aver.IsTrue(test.First.Equals(test.Last));
+            Aver.IsNull(test.First.Next);
         }
 
         [Test]
@@ -135,12 +136,12 @@ namespace NFX.Utils
             const int testValue = 11;
             var test = new LinkedList<int>(m_pile, testValue);
             var next = test.AddAfter(test.First, testValue + 1);
-            Assert.AreEqual(test.First.Value, testValue);
-            Assert.AreEqual(test.First.Next.Value, testValue + 1);
+            Aver.AreEqual(test.First.Value, testValue);
+            Aver.AreEqual(test.First.Next.Value, testValue + 1);
             test.Remove(test.Last);
-            Assert.AreEqual(test.Last.Value, testValue);
-            Assert.AreEqual(test.First, test.Last);
-            Assert.IsNull(test.Last.Previous);
+            Aver.AreEqual(test.Last.Value, testValue);
+            Aver.IsTrue(test.First.Equals(test.Last));
+            Aver.IsNull(test.Last.Previous);
         }
 
         [Test]
@@ -161,7 +162,7 @@ namespace NFX.Utils
             while (current != null)
             {
                 Console.WriteLine(j);
-                Assert.AreEqual(current.Value, j);
+                Aver.AreEqual(current.Value, j);
                 current = current.Next;
                 j++;
             }
@@ -173,7 +174,7 @@ namespace NFX.Utils
                 if (j != 5)
                 {
                     Console.WriteLine(j);
-                    Assert.AreEqual(current.Value, j);
+                    Aver.AreEqual(current.Value, j);
                     current = current.Next;
                 }
                 j++;
@@ -192,7 +193,7 @@ namespace NFX.Utils
             var j = 0;
             foreach (var item in test)
             {
-                Assert.AreEqual(item, j);
+                Aver.AreEqual(item, j);
                 j++;
             }
         }

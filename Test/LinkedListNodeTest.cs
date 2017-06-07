@@ -37,12 +37,12 @@ namespace NFX.Utils
                 Pile = m_pile;
                 var list = new List<LinkedListNode<int>>();
 
-                for (int i=0; i< 10; i++)
+                for (var i=0; i< 10; i++)
                 {
                     list.Add(new LinkedListNode<int>(Pile, i));
                 }
 
-                foreach(LinkedListNode<int> item in list)
+                foreach(var item in list)
                 {
                     Console.WriteLine(item.Value);
                 }
