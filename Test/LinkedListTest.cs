@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.Remoting;
 using NFX.ApplicationModel.Pile;
@@ -140,6 +141,44 @@ namespace NFX.Utils
             Assert.AreEqual(test.Last.Value, testValue);
             Assert.AreEqual(test.First, test.Last);
             Assert.IsNull(test.Last.Previous);
+        }
+
+        [Test]
+        public void RemoveTest()
+        {
+            var test = new LinkedList<int>(m_pile, 0);
+            LinkedListNode<int> forDelete = null;
+            for (var i = 1; i < 10; i++)
+            {
+                var item = test.AddLast(i);
+                if (i == 5)
+                {
+                    forDelete = item;
+                } 
+            }
+            var j = 0;
+            var current = test.First;
+            while (current != null)
+            {
+                Console.WriteLine(j);
+                Assert.AreEqual(current.Value, j);
+                current = current.Next;
+                j++;
+            }
+            test.Remove(forDelete);
+            current = test.First;
+            j = 0;
+            while (current != null)
+            {
+                if (j != 5)
+                {
+                    Console.WriteLine(j);
+                    Assert.AreEqual(current.Value, j);
+                    current = current.Next;
+                }
+                j++;
+            }
+            
         }
     }
 }
