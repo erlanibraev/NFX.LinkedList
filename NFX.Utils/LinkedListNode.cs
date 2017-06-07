@@ -67,7 +67,8 @@ namespace NFX.Utils
         public LinkedListNode<T> Previous => Node.PreviousPP != PilePointer.Invalid ? new LinkedListNode<T>(m_Pile, Node.PreviousPP) : null;
 
         #endregion
-
+        
+        
         public bool Equals(LinkedListNode<T> other)
         {
             return Node.Equals(other.Node);

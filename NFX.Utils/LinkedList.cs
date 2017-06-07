@@ -239,8 +239,14 @@ namespace NFX.Utils
             First = true;
         }
 
-        object IEnumerator.Current => Current;
+        object IEnumerator.Current
+        {
+            get { return Current; }
+        }
 
-        public T Current => CurrentNode != null ? CurrentNode.Value : default(T);
+        public T Current
+        {
+            get { return CurrentNode != null ? CurrentNode.Value : default(T); }
+        }
     }
 }
