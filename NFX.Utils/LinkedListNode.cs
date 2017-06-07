@@ -49,7 +49,7 @@ namespace NFX.Utils
                 if (value != null)
                 {
                     Node.m_pp_value = m_pile.Put(value);
-                    m_pile.Put(Node.m_pp_self, this);
+                    m_pile.Put(Node.m_pp_self, Node);
                 }
                 else
                 {

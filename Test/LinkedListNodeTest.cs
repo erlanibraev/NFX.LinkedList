@@ -24,7 +24,7 @@ namespace NFX.Utils
                 m_pile.WaitForCompleteStop();
             }
             
-            Assert.True(true);
+            Aver.IsTrue(true);
         }
 
         [Test]
@@ -61,7 +61,7 @@ namespace NFX.Utils
                 // var pp = m_pile.Put(test);
                 // Console.WriteLine(pp);
                 Console.WriteLine(test.Value);
-                Assert.AreEqual(test.Value, 11);
+                Aver.AreEqual(test.Value, 11);
                 
                 m_pile.WaitForCompleteStop();
             }
@@ -73,7 +73,7 @@ namespace NFX.Utils
             using (var m_pile = new DefaultPile() {AllocMode = AllocationMode.FavorSpeed}) {
                 m_pile.Start();
                 var test = new LinkedListNode<string>(m_pile, null);
-                Assert.IsNull(test.Value);
+                Aver.IsNull(test.Value);
             }
         }
 
@@ -84,9 +84,22 @@ namespace NFX.Utils
             {
                 m_pile.Start();
                 var test = new LinkedListNode<string>(m_pile, "TEST");
-                Assert.AreEqual(test.Value, "TEST");
+                Aver.AreEqual(test.Value, "TEST");
                 test.Value = null;
-                Assert.IsNull(test.Value);
+                Aver.IsNull(test.Value);
+            }
+        }
+
+        [Test]
+        public void ChangeValueTest()
+        {
+            using (var m_pile = new DefaultPile() {AllocMode = AllocationMode.FavorSpeed})
+            {
+                m_pile.Start();
+                var test = new LinkedListNode<string>(m_pile, "TEST");
+                Aver.AreEqual(test.Value, "TEST");
+                test.Value = "TEST 111";
+                Aver.AreEqual(test.Value, "TEST 111");
             }
         }
 
