@@ -1,79 +1,83 @@
+using System;
 using NFX.ApplicationModel.Pile;
 
 namespace NFX.Utils
 {
-    public class LinkedListNode<T>
+    public class LinkedListNode<T> :IEquatable<LinkedListNode<T>>
     {
-        private IPile m_pile { get; set; }
-        protected internal NodeData Node { get; set; } = new NodeData();
-        protected internal LinkedList<T> List;
-
         #region .ctor
 
-        public LinkedListNode(IPile pile, PilePointer pp_self)
+        public LinkedListNode(IPile pile, PilePointer self)
         {
-            m_pile = pile;
-            Node = m_pile.Get(pp_self) as NodeData;
+            m_Pile = pile;
+            Node = m_Pile.Get(self) as NodeData;
         }
 
 
         public LinkedListNode(IPile pile)
         {
-            m_pile = pile as IPile;
-            Node.m_pp_self = pile.Put(Node);
-            pile.Put(Node.m_pp_self, Node);
+            m_Pile = pile;
+            Node = new NodeData();
+            Node.SelfPP = pile.Put(Node);
+            pile.Put(Node.SelfPP, Node);
 
         }
 
         public LinkedListNode(IPile pile, T value)
         {
-            m_pile = pile as IPile;
-            if (value != null) Node.m_pp_value = m_pile.Put(value);
-            Node.m_pp_self = m_pile.Put(Node);
-            m_pile.Put(Node.m_pp_self, Node);
+            m_Pile = pile;
+            Node = new NodeData();
+            if (value != null) Node.ValuePP = m_Pile.Put(value);
+            Node.SelfPP = m_Pile.Put(Node);
+            m_Pile.Put(Node.SelfPP, Node);
         }
 
         #endregion
 
         #region Properties
 
+        private readonly IPile m_Pile;
+        internal NodeData Node;
+        internal LinkedList<T> List;
+
+
         public T Value
         {
-            get => (T) (Node.m_pp_value != PilePointer.Invalid ? m_pile.Get(Node.m_pp_value) : default(T));
+            get { return (T) (Node.ValuePP != PilePointer.Invalid ? m_Pile.Get(Node.ValuePP) : default(T)); }
             set
             {
-                if (Node.m_pp_value != PilePointer.Invalid)
+                if (Node.ValuePP != PilePointer.Invalid)
                 {
-                    m_pile.Delete(Node.m_pp_value);    
+                    m_Pile.Delete(Node.ValuePP);    
                 }
                 if (value != null)
                 {
-                    Node.m_pp_value = m_pile.Put(value);
-                    m_pile.Put(Node.m_pp_self, Node);
+                    Node.ValuePP = m_Pile.Put(value);
+                    m_Pile.Put(Node.SelfPP, Node);
                 }
                 else
                 {
-                    Node.m_pp_value = PilePointer.Invalid;
+                    Node.ValuePP = PilePointer.Invalid;
                 }
             }
-            
         }
 
-        public LinkedListNode<T> Next => Node.m_pp_next != PilePointer.Invalid ? new LinkedListNode<T>(m_pile, Node.m_pp_next) : null;
+        public LinkedListNode<T> Next => Node.NextPP != PilePointer.Invalid ? new LinkedListNode<T>(m_Pile, Node.NextPP) : null;
 
-        public LinkedListNode<T> Previous => Node.m_pp_previous != PilePointer.Invalid ? new LinkedListNode<T>(m_pile, Node.m_pp_previous) : null;
+        public LinkedListNode<T> Previous => Node.PreviousPP != PilePointer.Invalid ? new LinkedListNode<T>(m_Pile, Node.PreviousPP) : null;
 
         #endregion
 
+        public bool Equals(LinkedListNode<T> other)
+        {
+            return Node.Equals(other.Node);
+        }
+
         public override bool Equals(object obj)
         {
-            bool result = false;
-            if (obj?.GetType() == typeof(LinkedListNode<T>))
-            {
-                LinkedListNode<T> data = obj as LinkedListNode<T>;
-                result = Node.Equals(data.Node);
-            }
-            return result;
+            var tmp = obj as LinkedList<T>;
+            if (tmp == null) return false;
+            return Equals(tmp);
         }
 
         public override int GetHashCode()
@@ -82,28 +86,28 @@ namespace NFX.Utils
         }
     }
 
-    public class NodeData
+    internal class NodeData : IEquatable<NodeData>
     {
-        protected internal PilePointer m_pp_self { get; set; } = PilePointer.Invalid;
-        protected internal PilePointer m_pp_value { get; set; } = PilePointer.Invalid;
-        protected internal PilePointer m_pp_next { get; set; } = PilePointer.Invalid;
-        protected internal PilePointer m_pp_previous { get; set; } = PilePointer.Invalid;
+        public PilePointer SelfPP = PilePointer.Invalid;
+        public PilePointer ValuePP = PilePointer.Invalid;
+        public PilePointer NextPP = PilePointer.Invalid;
+        public PilePointer PreviousPP = PilePointer.Invalid;
+
+        public bool Equals(NodeData other)
+        {
+            return SelfPP == other.SelfPP;
+        }
 
         public override bool Equals(object obj)
         {
-            bool result = false;
-            if (obj?.GetType() == typeof(NodeData))
-            {
-                NodeData nodeData = obj as NodeData;
-                result = m_pp_self == nodeData.m_pp_self;
-            }
-            return result;
+            var nd = obj as NodeData;
+            if (nd == null) return false;
+            return Equals(nd);
         }
 
         public override int GetHashCode()
         {
-            return m_pp_self.GetHashCode() + m_pp_value.GetHashCode() + m_pp_next.GetHashCode() +
-                   m_pp_previous.GetHashCode();
+            return SelfPP.GetHashCode();
         }
     }
 }
