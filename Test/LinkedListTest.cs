@@ -180,5 +180,21 @@ namespace NFX.Utils
             }
             
         }
+
+        [Test]
+        public void ForEachTest()
+        {
+            var test = new LinkedList<int>(m_pile, 0);
+            for (var i = 1; i < 10; i++)
+            {
+                test.AddLast(i);
+            }
+            var j = 0;
+            foreach (var item in test)
+            {
+                Assert.AreEqual(item, j);
+                j++;
+            }
+        }
     }
 }

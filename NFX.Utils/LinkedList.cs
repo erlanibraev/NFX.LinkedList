@@ -206,6 +206,7 @@ namespace NFX.Utils
 
         private readonly LinkedList<T> m_list;
         private LinkedListNode<T> m_current_node;
+        private bool first = true;
 
         public LinkedListEnumerator(LinkedList<T> list)
         {
@@ -215,18 +216,28 @@ namespace NFX.Utils
 
         public void Dispose()
         {
-            throw new System.NotImplementedException();
+            
+            // throw new System.NotImplementedException();
         }
 
         public bool MoveNext()
         {
-            m_current_node = m_current_node?.Next;
+            if (!first)
+            {
+                m_current_node = m_current_node?.Next;
+            }
+            else
+            {
+                first = false;
+            }
+           
             return m_current_node != null;
         }
 
         public void Reset()
         {
             m_current_node = m_list.First;
+            first = true;
         }
 
         object IEnumerator.Current => Current;
