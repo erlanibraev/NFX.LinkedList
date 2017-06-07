@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Runtime.Remoting;
+using NFX.ApplicationModel.Pile;
 using NUnit.Framework;
 
 namespace NFX.Utils
@@ -7,10 +9,23 @@ namespace NFX.Utils
     public class LinkedListTest
     {
 
+        public DefaultPile m_pile = new DefaultPile() {AllocMode = AllocationMode.ReuseSpace};
+        
+        [SetUp]
+        public void setUp()
+        {
+            m_pile.Start();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            m_pile.WaitForCompleteStop();
+        }
         [Test]
         public void SimpleTest()
         {
-            var test = new LinkedList<int>();
+            var test = new LinkedList<int>(m_pile);
             Assert.NotNull(test);
             Assert.IsNull(test.First);
             Assert.IsNull(test.Last);
@@ -20,7 +35,7 @@ namespace NFX.Utils
         public void SimpleValueTest()
         {
             const int testValue = 11;
-            var test = new LinkedList<int>(testValue);
+            var test = new LinkedList<int>(m_pile, testValue);
             Assert.NotNull(test);
             Assert.NotNull(test.First);
             Assert.NotNull(test.Last);
@@ -33,7 +48,7 @@ namespace NFX.Utils
         public void SimpleAddFirstTest()
         {
             const int testValue = 11;
-            var test = new LinkedList<int>();
+            var test = new LinkedList<int>(m_pile);
             test.AddFirst(testValue);
             Assert.NotNull(test);
             Assert.NotNull(test.First);
@@ -45,7 +60,7 @@ namespace NFX.Utils
         public void SimpleValyeAddFirstTest()
         {
             const int testValue = 11;
-            var test = new LinkedList<int>(testValue);
+            var test = new LinkedList<int>(m_pile, testValue);
             test.AddFirst(testValue - 1);
             Assert.NotNull(test);
             Assert.NotNull(test.First);
@@ -61,7 +76,7 @@ namespace NFX.Utils
         public void SimpleAddLastTest()
         {
             const int testValue = 11;
-            var test = new LinkedList<int>();
+            var test = new LinkedList<int>(m_pile);
             test.AddLast(testValue);
             Assert.NotNull(test);
             Assert.NotNull(test.First);
@@ -74,7 +89,7 @@ namespace NFX.Utils
         public void SimpleValueAddLastTest()
         {
             const int testValue = 11;
-            var test = new LinkedList<int>(testValue);
+            var test = new LinkedList<int>(m_pile, testValue);
             test.AddLast(testValue + 1);
             Assert.NotNull(test);
             Assert.NotNull(test.First);
@@ -90,13 +105,41 @@ namespace NFX.Utils
         public void SimpleRemoveTest()
         {
             const int testValue = 11;
-            var test = new LinkedList<int>(testValue);
+            var test = new LinkedList<int>(m_pile, testValue);
             Assert.NotNull(test);
             Assert.NotNull(test.First);
             Assert.AreEqual(test.First.Value, testValue);
             test.Remove(test.First);
             Assert.IsNull(test.First);
             Assert.IsNull(test.Last);
+        }
+
+        [Test]
+        public void SimpleRemoveFirstTest()
+        {
+            const int testValue = 11;
+            var test = new LinkedList<int>(m_pile, testValue);
+            var next = test.AddAfter(test.First, testValue + 1);
+            Assert.AreEqual(test.First.Value, testValue);
+            Assert.AreEqual(test.First.Next.Value, testValue +1);
+            test.Remove(test.First);
+            Assert.AreEqual(test.First.Value, testValue + 1);
+            Assert.AreEqual(test.First, test.Last);
+            Assert.IsNull(test.First.Next);
+        }
+
+        [Test]
+        public void SimpleRemoveLastTest()
+        {
+            const int testValue = 11;
+            var test = new LinkedList<int>(m_pile, testValue);
+            var next = test.AddAfter(test.First, testValue + 1);
+            Assert.AreEqual(test.First.Value, testValue);
+            Assert.AreEqual(test.First.Next.Value, testValue + 1);
+            test.Remove(test.Last);
+            Assert.AreEqual(test.Last.Value, testValue);
+            Assert.AreEqual(test.First, test.Last);
+            Assert.IsNull(test.Last.Previous);
         }
     }
 }

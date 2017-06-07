@@ -17,7 +17,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
+    <Optimize>true</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -34,13 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="NFX, Version=3.0.0.1, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\nfx\Output\Release\NFX.dll</HintPath>
-    </Reference>
-    <Reference Include="NFX.NUnit, Version=3.0.0.1, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\nfx\Output\Release\NFX.NUnit.dll</HintPath>
-    </Reference>
-    <Reference Include="NFX.NUnit.Integration, Version=3.0.0.1, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\..\nfx\Output\Release\NFX.NUnit.Integration.dll</HintPath>
+      <HintPath>..\packages\NFX.3.4.0.1\lib\NFX.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -50,8 +44,10 @@
   <ItemGroup>
     <Compile Include="LinkedList.cs" />
     <Compile Include="LinkedListNode.cs" />
-    <Compile Include="PileSinglton.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -7,42 +7,35 @@ namespace NFX.Utils
 {
     public class LinkedList<T> : IEnumerable<T>, IEnumerable
     {
-        protected internal PilePointer m_pp_first { get; set; } = PilePointer.Invalid;
-        protected internal PilePointer m_pp_self { get; set; } = PilePointer.Invalid;
-        protected internal PilePointer m_pp_last { get; set; } = PilePointer.Invalid;
+
+        private readonly IPile m_pile;
+        private LinkedListNode<T> m_first;
+        private LinkedListNode<T> m_last;
         
-        
-        public LinkedList()
+        public LinkedList(IPile pile)
         {
-            m_pp_self = PileSinglton.Pile.Put(this);
-            PileSinglton.Pile.Put(m_pp_self, this);
+            m_pile = pile;
         }
 
-        public LinkedList(T value)
+        public LinkedList(IPile pile, T value)
         {
-            var item = new LinkedListNode<T>(value);
-            m_pp_first = item.m_pp_self;
-            m_pp_last = item.m_pp_self;
-            m_pp_self = PileSinglton.Pile.Put(this);
-            PileSinglton.Pile.Put(m_pp_self, this);
-            item.m_pp_list = m_pp_self;
-            PileSinglton.Pile.Put(item.m_pp_self, item);
+            m_pile = pile;
+            var item = new LinkedListNode<T>(m_pile, value);
+            item.List = this;
+            m_first = item;
+            m_last = item;
         }
 
-        public LinkedListNode<T> First => (LinkedListNode<T>) (m_pp_first != PilePointer.Invalid
-            ? PileSinglton.Pile.Get(m_pp_first)
-            : null);
-        
-        public LinkedListNode<T> Last => (LinkedListNode<T>) (m_pp_last != PilePointer.Invalid
-            ? PileSinglton.Pile.Get(m_pp_last)
-            : null);
+        public LinkedListNode<T> First => m_first;
+
+        public LinkedListNode<T> Last => m_last;
 
 
         public LinkedListNode<T> AddFirst(T value)
         {
-            var result = new LinkedListNode<T>(value);
-            result.m_pp_list = m_pp_self;
-            if (m_pp_first != PilePointer.Invalid)
+            var result = new LinkedListNode<T>(m_pile, value);
+            result.List = this;
+            if (First != null)
             {
                 AddBefore(First, result);
             }
@@ -55,9 +48,9 @@ namespace NFX.Utils
 
         public LinkedListNode<T> AddLast(T value)
         {
-            var result = new LinkedListNode<T>(value);
-            result.m_pp_list = m_pp_self;
-            if (m_pp_last != PilePointer.Invalid)
+            var result = new LinkedListNode<T>(m_pile, value);
+            result.List = this;
+            if (Last != null)
             {
                 AddAfter(Last, result);
             }
@@ -71,8 +64,8 @@ namespace NFX.Utils
 
         public LinkedListNode<T> AddBefore(LinkedListNode<T> node, T value)
         {
-            var result = new LinkedListNode<T>(value);
-            result.m_pp_list = m_pp_self;
+            var result = new LinkedListNode<T>(m_pile, value);
+            result.List = this;
             AddBefore(node, result);
             return result;
         }
@@ -80,27 +73,26 @@ namespace NFX.Utils
         public void AddBefore(LinkedListNode<T> node, LinkedListNode<T> newNode)
         {
             if(newNode == null || node == null ) throw new ArgumentNullException();
-            if (newNode.m_pp_next != PilePointer.Invalid || newNode.m_pp_previous != PilePointer.Invalid)
+            if (newNode.Next != null || newNode.Previous != null)
                 throw new InvalidOperationException();
-            if(node.m_pp_list != m_pp_self || newNode.m_pp_list != m_pp_self) throw new InvalidOperationException();
+            if(node.List != this || newNode.List != this) throw new InvalidOperationException();
             
-            var tmp_prev = node.m_pp_previous;
-            node.m_pp_previous = newNode.m_pp_self;
-            newNode.m_pp_next = node.m_pp_self;
-            newNode.m_pp_previous = tmp_prev;
-            if (m_pp_first.Equals(node.m_pp_self))
+            var tmp_prev = node.Node.m_pp_previous;
+            node.Node.m_pp_previous = newNode.Node.m_pp_self;
+            newNode.Node.m_pp_next = node.Node.m_pp_self;
+            newNode.Node.m_pp_previous = tmp_prev;
+            if (First.Node.m_pp_self.Equals(node.Node.m_pp_self))
             {
-                m_pp_first = newNode.m_pp_self;
-                PileSinglton.Pile.Put(m_pp_self, this);
+                m_first = newNode;
             }
-            PileSinglton.Pile.Put(node.m_pp_self, node);
-            PileSinglton.Pile.Put(newNode.m_pp_self, newNode);
+            m_pile.Put(node.Node.m_pp_self, node.Node);
+            m_pile.Put(newNode.Node.m_pp_self, newNode.Node);
         }
 
         public LinkedListNode<T> AddAfter(LinkedListNode<T> node, T value)
         {
-            var result = new LinkedListNode<T>(value);
-            result.m_pp_list = m_pp_self;
+            var result = new LinkedListNode<T>(m_pile, value);
+            result.List = this;
             AddAfter(node, result);
             return result;
         }
@@ -108,34 +100,92 @@ namespace NFX.Utils
         public void AddAfter(LinkedListNode<T> node, LinkedListNode<T> newNode)
         {
             if(newNode == null || node == null ) throw new ArgumentNullException();
-            if (newNode.m_pp_next != PilePointer.Invalid || newNode.m_pp_previous != PilePointer.Invalid)
+            if (newNode.Node.m_pp_next != PilePointer.Invalid || newNode.Node.m_pp_previous != PilePointer.Invalid)
                 throw new InvalidOperationException();
-            if(node.m_pp_list != m_pp_self || newNode.m_pp_list != m_pp_self) throw new InvalidOperationException();
+            if(node.List != this || newNode.List != this) throw new InvalidOperationException();
             
-            var tmp_prev = node.m_pp_next;
-            node.m_pp_next = newNode.m_pp_self;
-            newNode.m_pp_previous = node.m_pp_self;
-            newNode.m_pp_next = tmp_prev;
-            if (m_pp_last.Equals(node.m_pp_self))
+            var tmp_prev = node.Node.m_pp_next;
+            node.Node.m_pp_next = newNode.Node.m_pp_self;
+            newNode.Node.m_pp_previous = node.Node.m_pp_self;
+            newNode.Node.m_pp_next = tmp_prev;
+            if (Last.Node.m_pp_self.Equals(node.Node.m_pp_self))
             {
-                m_pp_last = newNode.m_pp_self;
-                PileSinglton.Pile.Put(m_pp_self, this);
+                m_last = newNode;
             }
-            PileSinglton.Pile.Put(node.m_pp_self, node);
-            PileSinglton.Pile.Put(newNode.m_pp_self, newNode);
+            m_pile.Put(node.Node.m_pp_self, node.Node);
+            m_pile.Put(newNode.Node.m_pp_self, newNode.Node);
         }
 
         public void Remove(LinkedListNode<T> node)
         {
-            throw new NotImplementedException();    
+            var current = First;
+            while (current != null)
+            {
+                if (current.Equals(node))
+                {
+                    NodeData m_prevous = current.Node.m_pp_previous != PilePointer.Invalid ? m_pile.Get(current.Node.m_pp_previous) as NodeData : null;
+                    NodeData m_next = current.Node.m_pp_next != PilePointer.Invalid ? m_pile.Get(current.Node.m_pp_next) as NodeData : null;
+                    NodeData m_self = current.Node;
+
+                    if (m_prevous == null && m_next == null)
+                    {
+                        if (current.Equals(First) && current.Equals(Last))
+                        {
+                            m_pile.Delete(m_self.m_pp_self);
+                            m_first = null;
+                            m_last = null;
+                        }
+                        else
+                        {
+                            throw new ArgumentOutOfRangeException();
+                        }
+                    }
+                    else if (m_prevous == null && m_next != null)
+                    {
+                        if (current.Equals(First))
+                        {
+                            m_pile.Delete(m_self.m_pp_self);
+                            m_next.m_pp_previous = PilePointer.Invalid;
+                            m_pile.Put(m_next.m_pp_self, m_next);
+                            m_first = new LinkedListNode<T>(m_pile, m_next.m_pp_self) {List = this};
+                        }
+                        else
+                        {
+                            throw new ArgumentOutOfRangeException();
+                        }
+                    } 
+                    else if (m_prevous != null && m_next == null)
+                    {
+                        if(current.Equals(Last)) {
+                            m_pile.Delete(m_self.m_pp_self);
+                            m_prevous.m_pp_next = PilePointer.Invalid;
+                            m_pile.Put(m_prevous.m_pp_self, m_prevous);
+                            m_last = new LinkedListNode<T>(m_pile, m_prevous.m_pp_self) {List = this};
+                        }
+                        else
+                        {
+                            throw new ArgumentOutOfRangeException();
+                        }
+                    }
+                    else
+                    {
+                        m_prevous.m_pp_next = m_self.m_pp_next;
+                        m_next.m_pp_previous = m_self.m_pp_previous;
+                        m_pile.Delete(m_self.m_pp_self);
+                        m_pile.Put(m_next.m_pp_self, m_next);
+                        m_pile.Put(m_prevous.m_pp_self, m_prevous);
+                    }
+                    
+                    break;
+                }
+                current = current.Next;
+            }    
         }
 
         private void addFirstLastOnly(LinkedListNode<T> node)
         {
-            m_pp_first = node.m_pp_self;
-            m_pp_last = node.m_pp_self;
-            PileSinglton.Pile.Put(m_pp_self, this);
-            PileSinglton.Pile.Put(node.m_pp_self, node);            
+            m_first = node;
+            m_last = node;
         }
 
 

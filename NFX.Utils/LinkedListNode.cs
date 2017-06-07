@@ -4,51 +4,98 @@ namespace NFX.Utils
 {
     public class LinkedListNode<T>
     {
-        protected internal PilePointer m_pp_self { get; set; } = PilePointer.Invalid;
-        protected internal PilePointer m_pp_value { get; set; } = PilePointer.Invalid;
-        protected internal PilePointer m_pp_next { get; set; } = PilePointer.Invalid;
-        protected internal PilePointer m_pp_previous { get; set; } = PilePointer.Invalid;
-        protected internal PilePointer m_pp_list { get; set; } =PilePointer.Invalid;
+        private IPile m_pile { get; set; }
+        protected internal NodeData Node { get; set; } = new NodeData();
+        protected internal LinkedList<T> List;
 
-        public LinkedListNode()
+        public LinkedListNode(IPile pile, PilePointer pp_self)
         {
-            m_pp_self = PileSinglton.Pile.Put(this);
-            PileSinglton.Pile.Put(m_pp_self, this);
+            m_pile = pile;
+            Node = m_pile.Get(pp_self) as NodeData;
+        }
+
+
+        public LinkedListNode(IPile pile)
+        {
+            m_pile = pile as IPile;
+            Node.m_pp_self = pile.Put(Node);
+            pile.Put(Node.m_pp_self, Node);
 
         }
 
-        public LinkedListNode(T value)
+        public LinkedListNode(IPile pile, T value)
         {
-            if (value != null) m_pp_value = PileSinglton.Pile.Put(value);
-            m_pp_self = PileSinglton.Pile.Put(this);
-            PileSinglton.Pile.Put(m_pp_self, this);
-
+            m_pile = pile as IPile;
+            if (value != null) Node.m_pp_value = m_pile.Put(value);
+            Node.m_pp_self = m_pile.Put(Node);
+            m_pile.Put(Node.m_pp_self, Node);
         }
 
         public T Value
         {
-            get => (T) (m_pp_value != PilePointer.Invalid ? PileSinglton.Pile.Get(m_pp_value) : default(T));
+            get => (T) (Node.m_pp_value != PilePointer.Invalid ? m_pile.Get(Node.m_pp_value) : default(T));
             set
             {
-                if (m_pp_value != PilePointer.Invalid)
+                if (Node.m_pp_value != PilePointer.Invalid)
                 {
-                    PileSinglton.Pile.Delete(m_pp_value);    
+                    m_pile.Delete(Node.m_pp_value);    
                 }
                 if (value != null)
                 {
-                    m_pp_value = PileSinglton.Pile.Put(value);
-                    PileSinglton.Pile.Put(m_pp_self, this);
+                    Node.m_pp_value = m_pile.Put(value);
+                    m_pile.Put(Node.m_pp_self, this);
                 }
                 else
                 {
-                    m_pp_value = PilePointer.Invalid;
+                    Node.m_pp_value = PilePointer.Invalid;
                 }
             }
             
         }
 
-        public LinkedListNode<T> Next => (LinkedListNode<T>) (m_pp_next != PilePointer.Invalid ? PileSinglton.Pile.Get(m_pp_next) : null);
+        public LinkedListNode<T> Next => Node.m_pp_next != PilePointer.Invalid ? new LinkedListNode<T>(m_pile, Node.m_pp_next) : null;
 
-        public LinkedListNode<T> Previous => (LinkedListNode<T>) (m_pp_previous != PilePointer.Invalid ? PileSinglton.Pile.Get(m_pp_previous) : null);
+        public LinkedListNode<T> Previous => Node.m_pp_previous != PilePointer.Invalid ? new LinkedListNode<T>(m_pile, Node.m_pp_previous) : null;
+
+        public override bool Equals(object obj)
+        {
+            bool result = false;
+            if (obj?.GetType() == typeof(LinkedListNode<T>))
+            {
+                LinkedListNode<T> data = obj as LinkedListNode<T>;
+                result = Node.Equals(data.Node);
+            }
+            return result;
+        }
+
+        public override int GetHashCode()
+        {
+            return Node.GetHashCode();
+        }
+    }
+
+    public class NodeData
+    {
+        protected internal PilePointer m_pp_self { get; set; } = PilePointer.Invalid;
+        protected internal PilePointer m_pp_value { get; set; } = PilePointer.Invalid;
+        protected internal PilePointer m_pp_next { get; set; } = PilePointer.Invalid;
+        protected internal PilePointer m_pp_previous { get; set; } = PilePointer.Invalid;
+
+        public override bool Equals(object obj)
+        {
+            bool result = false;
+            if (obj?.GetType() == typeof(NodeData))
+            {
+                NodeData nodeData = obj as NodeData;
+                result = m_pp_self == nodeData.m_pp_self;
+            }
+            return result;
+        }
+
+        public override int GetHashCode()
+        {
+            return m_pp_self.GetHashCode() + m_pp_value.GetHashCode() + m_pp_next.GetHashCode() +
+                   m_pp_previous.GetHashCode();
+        }
     }
 }
