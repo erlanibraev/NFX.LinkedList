@@ -8,6 +8,8 @@ namespace NFX.Utils
         protected internal NodeData Node { get; set; } = new NodeData();
         protected internal LinkedList<T> List;
 
+        #region .ctor
+
         public LinkedListNode(IPile pile, PilePointer pp_self)
         {
             m_pile = pile;
@@ -30,6 +32,10 @@ namespace NFX.Utils
             Node.m_pp_self = m_pile.Put(Node);
             m_pile.Put(Node.m_pp_self, Node);
         }
+
+        #endregion
+
+        #region Properties
 
         public T Value
         {
@@ -56,6 +62,8 @@ namespace NFX.Utils
         public LinkedListNode<T> Next => Node.m_pp_next != PilePointer.Invalid ? new LinkedListNode<T>(m_pile, Node.m_pp_next) : null;
 
         public LinkedListNode<T> Previous => Node.m_pp_previous != PilePointer.Invalid ? new LinkedListNode<T>(m_pile, Node.m_pp_previous) : null;
+
+        #endregion
 
         public override bool Equals(object obj)
         {
