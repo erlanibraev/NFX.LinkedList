@@ -7,12 +7,11 @@ namespace NFX.Utils
     {
         #region .ctor
 
-        public LinkedListNode(IPile pile, PilePointer self)
+        private LinkedListNode(IPile pile, PilePointer self)
         {
             m_Pile = pile;
             Node = m_Pile.Get(self) as NodeData;
         }
-
 
         public LinkedListNode(IPile pile)
         {
@@ -85,6 +84,16 @@ namespace NFX.Utils
         {
             return Node.GetHashCode();
         }
+
+        public static bool operator ==(LinkedListNode<T> a, LinkedListNode<T> b)
+        {
+            return a != null && b != null && a.Equals(b);
+        }
+
+        public static bool operator !=(LinkedListNode<T> a, LinkedListNode<T> b)
+        {
+            return !(a == b);
+        }
     }
 
     internal class NodeData : IEquatable<NodeData>
@@ -109,6 +118,16 @@ namespace NFX.Utils
         public override int GetHashCode()
         {
             return SelfPP.GetHashCode();
+        }
+
+        public static bool operator ==(NodeData a, NodeData b)
+        {
+            return a != null && b != null && a.Equals(b);
+        }
+
+        public static bool operator !=(NodeData a, NodeData b)
+        {
+            return !(a == b);
         }
     }
 }

@@ -300,8 +300,6 @@ namespace NFX.Utils
             m_Count--;
         }
     }
-    
-
 
     internal class  LinkedListEnumerator<T> : IEnumerator<T>
     {
