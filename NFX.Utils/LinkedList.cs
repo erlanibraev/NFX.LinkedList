@@ -11,6 +11,7 @@ namespace NFX.Utils
         public LinkedList(IPile pile)
         {
             m_Pile = pile;
+            m_Count = 0;
         }
 
         public LinkedList(IPile pile, T value)
@@ -20,15 +21,17 @@ namespace NFX.Utils
             item.List = this;
             m_First = item;
             m_Last = item;
+            m_Count = 1;
         }
 
         private readonly IPile m_Pile;
         private LinkedListNode<T> m_First;
         private LinkedListNode<T> m_Last;
+        private int m_Count;
 
         public LinkedListNode<T> First { get { return m_First; }}
-
         public LinkedListNode<T> Last { get { return m_Last; }}
+        public int Count { get { return m_Count; } }
 
 
         public LinkedListNode<T> AddFirst(T value)
@@ -87,6 +90,7 @@ namespace NFX.Utils
             }
             m_Pile.Put(node.Node.SelfPP, node.Node);
             m_Pile.Put(newNode.Node.SelfPP, newNode.Node);
+            m_Count++;
         }
 
         public LinkedListNode<T> AddAfter(LinkedListNode<T> node, T value)
@@ -114,6 +118,7 @@ namespace NFX.Utils
             }
             m_Pile.Put(node.Node.SelfPP, node.Node);
             m_Pile.Put(newNode.Node.SelfPP, newNode.Node);
+            m_Count++;
         }
 
         public void Remove(LinkedListNode<T> node)
@@ -206,6 +211,16 @@ namespace NFX.Utils
             }
         }
 
+        public void RemoveFirst()
+        {
+            Remove(First);
+        }
+
+        public void RemoveLast()
+        {
+            Remove(Last);
+        }
+
         public IEnumerator<T> GetEnumerator()
         {
             var result = new LinkedListEnumerator<T>(this);
@@ -221,6 +236,7 @@ namespace NFX.Utils
         {
             m_First = node;
             m_Last = node;
+            m_Count = 1;
         }
 
         private void RemoveNode(LinkedListNode<T> current)
@@ -281,6 +297,7 @@ namespace NFX.Utils
                 m_Pile.Put(next.SelfPP, next);
                 m_Pile.Put(prevous.SelfPP, prevous);
             }
+            m_Count--;
         }
     }
     

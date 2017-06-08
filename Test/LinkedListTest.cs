@@ -341,10 +341,29 @@ namespace NFX.Utils
                     var val = item.Value;
                     Assert.Fail("VALUE");
                 }
-                catch (Exception ex)
+                catch (PileAccessViolationException ex)
                 {
-                    
+                    Console.WriteLine("");    
                 }
+            }
+        }
+
+        [Test]
+        public void SimpleCountTest()
+        {
+            var test = new LinkedList<int>(m_pile, 0);
+            for (var i = 1; i < 10; i++)
+            {
+                Aver.AreEqual(i, test.Count);
+                test.AddLast(i);
+            }
+            Aver.AreEqual(10, test.Count);
+            var j = 10;
+            while (test.First != null)
+            {
+                j--;
+                test.RemoveFirst();
+                Aver.AreEqual(j, test.Count);
             }
         }
     }
