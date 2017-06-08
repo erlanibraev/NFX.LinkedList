@@ -7,7 +7,7 @@ namespace NFX.Utils
     {
         #region .ctor
 
-        private LinkedListNode(IPile pile, PilePointer self)
+        internal LinkedListNode(IPile pile, PilePointer self)
         {
             m_Pile = pile;
             Node = m_Pile.Get(self) as NodeData;
@@ -70,7 +70,7 @@ namespace NFX.Utils
         
         public bool Equals(LinkedListNode<T> other)
         {
-            return Node.Equals(other.Node);
+            return !object.ReferenceEquals(other, null) && Node.Equals(other.Node);
         }
 
         public override bool Equals(object obj)
@@ -87,7 +87,7 @@ namespace NFX.Utils
 
         public static bool operator ==(LinkedListNode<T> a, LinkedListNode<T> b)
         {
-            return a != null && b != null && a.Equals(b);
+            return (!object.ReferenceEquals(a, null)  && a.Equals(b)) || (!object.ReferenceEquals(b, null)  && b.Equals(a )) || (object.ReferenceEquals(a, null) && object.ReferenceEquals(b, null));
         }
 
         public static bool operator !=(LinkedListNode<T> a, LinkedListNode<T> b)
@@ -105,7 +105,7 @@ namespace NFX.Utils
 
         public bool Equals(NodeData other)
         {
-            return SelfPP == other.SelfPP;
+            return !object.ReferenceEquals(other, null) && SelfPP == other.SelfPP;
         }
 
         public override bool Equals(object obj)
@@ -122,7 +122,7 @@ namespace NFX.Utils
 
         public static bool operator ==(NodeData a, NodeData b)
         {
-            return a != null && b != null && a.Equals(b);
+            return (!object.ReferenceEquals(a, null)  && a.Equals(b)) || (!object.ReferenceEquals(b, null)  && b.Equals(a )) || (object.ReferenceEquals(a, null) && object.ReferenceEquals(b, null));
         }
 
         public static bool operator !=(NodeData a, NodeData b)
