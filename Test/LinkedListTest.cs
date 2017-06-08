@@ -145,7 +145,7 @@ namespace NFX.Utils
         }
 
         [Test]
-        public void RemoveTest()
+        public void RemoveLinkedListNodeTest()
         {
             var test = new LinkedList<int>(m_pile, 0);
             LinkedListNode<int> forDelete = null;
@@ -183,6 +183,56 @@ namespace NFX.Utils
         }
 
         [Test]
+        public void RemoveValueTest()
+        {
+            const int forRemove = 5;
+            var test = new LinkedList<int>(m_pile, 0);
+            for (var i = 1; i < 10; i++)
+            {
+                var item = test.AddLast(i);
+            }
+            var j = 0;
+            var current = test.First;
+            while (current != null)
+            {
+                Console.WriteLine(j);
+                Aver.AreEqual(current.Value, j);
+                current = current.Next;
+                j++;
+            }
+            test.Remove(forRemove);
+            current = test.First;
+            j = 0;
+            while (current != null)
+            {
+                if (j != forRemove)
+                {
+                    Console.WriteLine(j);
+                    Aver.AreEqual(current.Value, j);
+                    current = current.Next;
+                }
+                j++;
+            }    
+        }
+
+        [Test]
+        public void ContainsTest()
+        {
+            var test = new LinkedList<int>(m_pile, 0);
+            for (var i = 1; i < 10; i++)
+            {
+                var item = test.AddLast(i);
+            }
+            for (var i = 0; i < 10; i++)
+            {
+                Aver.IsTrue(test.Contains(i));    
+            }
+            Aver.IsFalse(test.Contains(-1));
+            Aver.IsFalse(test.Contains(10));
+            Aver.IsFalse(test.Contains(12));
+        }
+
+        [Test]
         public void ForEachTest()
         {
             var test = new LinkedList<int>(m_pile, 0);
@@ -195,6 +245,106 @@ namespace NFX.Utils
             {
                 Aver.AreEqual(item, j);
                 j++;
+            }
+        }
+
+        [Test]
+        public void FindTest()
+        {
+            var test = new LinkedList<int>(m_pile, 0);
+            for (int i = 0; i < 10; i++)
+            {
+                test.AddLast(0);
+            }
+            var search = test.AddLast(10);
+            var notFind = new List<LinkedListNode<int>>();
+            for (int i = 0; i < 10; i++)
+            {
+                notFind.Add(test.AddLast(10));
+            }
+            for (int i = 0; i < 10; i++)
+            {
+                test.AddLast(15);
+            }
+            
+            Aver.AreEqual(search, test.Find(10));
+            foreach (var item in notFind)
+            {
+                Aver.AreNotEqual(item, test.Find(10));
+            }
+        }
+
+        [Test]
+        public void FindLastTest()
+        {
+            var test = new LinkedList<int>(m_pile, 0);
+            for (int i = 0; i < 10; i++)
+            {
+                test.AddLast(0);
+            }
+            var notFind = new List<LinkedListNode<int>>();
+            for (int i = 0; i < 10; i++)
+            {
+                notFind.Add(test.AddLast(10));
+            }
+            var search = test.AddLast(10);
+            for (int i = 0; i < 10; i++)
+            {
+                test.AddLast(15);
+            }
+            
+            Aver.AreEqual(search, test.FindLast(10));
+            foreach (var item in notFind)
+            {
+                Aver.AreNotEqual(item, test.FindLast(10));
+            }
+        }
+
+        [Test]
+        public void FindFindLastTest()
+        {
+            var test = new LinkedList<int>(m_pile, 0);
+            for (int i = 0; i < 10; i++)
+            {
+                test.AddLast(0);
+            }
+            var notFind = new List<LinkedListNode<int>>();
+            for (int i = 0; i < 10; i++)
+            {
+                notFind.Add(test.AddLast(10));
+            }
+            for (int i = 0; i < 10; i++)
+            {
+                test.AddLast(15);
+            }
+            
+            Aver.AreNotEqual(test.Find(10), test.FindLast(10));
+        }
+
+        [Test]
+        public void ClearTest()
+        {
+            var test = new LinkedList<int>(m_pile, 0);
+            var lln = new List<LinkedListNode<int>>();
+            for (var i = 1; i < 10; i++)
+            {
+                lln.Add(test.AddLast(i));
+            }
+            Aver.AreNotEqual(test.First, test.Last);
+            test.Clear();
+            Aver.IsNull(test.First);
+            Aver.IsNull(test.Last);
+            foreach (var item in lln)
+            {
+                try
+                {
+                    var val = item.Value;
+                    Assert.Fail("VALUE");
+                }
+                catch (Exception ex)
+                {
+                    
+                }
             }
         }
     }

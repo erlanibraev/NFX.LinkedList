@@ -123,63 +123,87 @@ namespace NFX.Utils
             {
                 if (current.Equals(node))
                 {
-                    NodeData prevous = current.Node.PreviousPP != PilePointer.Invalid ? m_Pile.Get(current.Node.PreviousPP) as NodeData : null;
-                    NodeData next = current.Node.NextPP != PilePointer.Invalid ? m_Pile.Get(current.Node.NextPP) as NodeData : null;
-                    NodeData self = current.Node;
-
-                    if (prevous == null && next == null)
-                    {
-                        if (current.Equals(First) && current.Equals(Last))
-                        {
-                            m_Pile.Delete(self.SelfPP);
-                            m_First = null;
-                            m_Last = null;
-                        }
-                        else
-                        {
-                            throw new ArgumentOutOfRangeException();
-                        }
-                    }
-                    else if (prevous == null && next != null)
-                    {
-                        if (current.Equals(First))
-                        {
-                            m_Pile.Delete(self.SelfPP);
-                            next.PreviousPP = PilePointer.Invalid;
-                            m_Pile.Put(next.SelfPP, next);
-                            m_First = new LinkedListNode<T>(m_Pile, next.SelfPP) {List = this};
-                        }
-                        else
-                        {
-                            throw new ArgumentOutOfRangeException();
-                        }
-                    } 
-                    else if (prevous != null && next == null)
-                    {
-                        if(current.Equals(Last)) {
-                            m_Pile.Delete(self.SelfPP);
-                            prevous.NextPP = PilePointer.Invalid;
-                            m_Pile.Put(prevous.SelfPP, prevous);
-                            m_Last = new LinkedListNode<T>(m_Pile, prevous.SelfPP) {List = this};
-                        }
-                        else
-                        {
-                            throw new ArgumentOutOfRangeException();
-                        }
-                    }
-                    else
-                    {
-                        prevous.NextPP = self.NextPP;
-                        next.PreviousPP = self.PreviousPP;
-                        m_Pile.Delete(self.SelfPP);
-                        m_Pile.Put(next.SelfPP, next);
-                        m_Pile.Put(prevous.SelfPP, prevous);
-                    }
-                    
+                    RemoveNode(current);
                     break;
                 }
                 current = current.Next;
             }    
+        }
+
+        public void Remove(T value)
+        {
+            var current = First;
+            while (current != null)
+            {
+                var val = current.Value;
+                if (val != null && val.Equals(value))
+                {
+                    RemoveNode(current);
+                    break;
+                }
+                current = current.Next;
+            }
+        }
+
+        public bool Contains(T value)
+        {
+            var result = false;
+            var current = First;
+            while (current != null)
+            {
+                var val = current.Value;
+                if (val != null && val.Equals(value))
+                {
+                    result = true;
+                    break;
+                }
+                current = current.Next;
+            }
+            return result;
+        }
+
+        public LinkedListNode<T> Find(T value)
+        {
+            LinkedListNode<T> result = null;
+            var current = First;
+            while (current != null)
+            {
+                var val = current.Value;
+                if (val != null && val.Equals(value))
+                {
+                    result = current;
+                    break;
+                }
+                current = current.Next;
+            }
+            return result;
+        }
+
+        public LinkedListNode<T> FindLast(T value)
+        {
+            LinkedListNode<T> result = null;
+            var current = Last;
+            while (current != null)
+            {
+                var val = current.Value;
+                if (val != null && val.Equals(value))
+                {
+                    result = current;
+                    break;
+                }
+                current = current.Previous;
+            }
+            return result;
+        }
+
+        public void Clear()
+        {
+            var current = First;
+            while (current != null)
+            {
+                RemoveNode(current);
+                current = First;
+            }
         }
 
         public IEnumerator<T> GetEnumerator()
@@ -198,7 +222,69 @@ namespace NFX.Utils
             m_First = node;
             m_Last = node;
         }
+
+        private void RemoveNode(LinkedListNode<T> current)
+        {
+            NodeData prevous = current.Node.PreviousPP != PilePointer.Invalid ? m_Pile.Get(current.Node.PreviousPP) as NodeData : null;
+            NodeData next = current.Node.NextPP != PilePointer.Invalid ? m_Pile.Get(current.Node.NextPP) as NodeData : null;
+            NodeData self = current.Node;
+
+            if (prevous == null && next == null)
+            {
+                if (current.Equals(First) && current.Equals(Last))
+                {
+                    m_Pile.Delete(self.ValuePP);
+                    m_Pile.Delete(self.SelfPP);
+                    m_First = null;
+                    m_Last = null;
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+            }
+            else if (prevous == null && next != null)
+            {
+                if (current.Equals(First))
+                {
+                    m_Pile.Delete(self.ValuePP);
+                    m_Pile.Delete(self.SelfPP);
+                    next.PreviousPP = PilePointer.Invalid;
+                    m_Pile.Put(next.SelfPP, next);
+                    m_First = new LinkedListNode<T>(m_Pile, next.SelfPP) {List = this};
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+            } 
+            else if (prevous != null && next == null)
+            {
+                if(current.Equals(Last)) {
+                    m_Pile.Delete(self.ValuePP);
+                    m_Pile.Delete(self.SelfPP);
+                    prevous.NextPP = PilePointer.Invalid;
+                    m_Pile.Put(prevous.SelfPP, prevous);
+                    m_Last = new LinkedListNode<T>(m_Pile, prevous.SelfPP) {List = this};
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+            }
+            else
+            {
+                prevous.NextPP = self.NextPP;
+                next.PreviousPP = self.PreviousPP;
+                m_Pile.Delete(self.ValuePP);
+                m_Pile.Delete(self.SelfPP);
+                m_Pile.Put(next.SelfPP, next);
+                m_Pile.Put(prevous.SelfPP, prevous);
+            }
+        }
     }
+    
+
 
     internal class  LinkedListEnumerator<T> : IEnumerator<T>
     {
