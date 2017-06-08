@@ -73,7 +73,7 @@ namespace NFX.Utils
             return result;
         }
         
-        public void AddBefore(LinkedListNode<T> node, LinkedListNode<T> newNode)
+        internal void AddBefore(LinkedListNode<T> node, LinkedListNode<T> newNode)
         {
             if(newNode == null || node == null ) throw new ArgumentNullException();
             if (newNode.Next != null || newNode.Previous != null)
@@ -101,7 +101,7 @@ namespace NFX.Utils
             return result;
         }
 
-        public void AddAfter(LinkedListNode<T> node, LinkedListNode<T> newNode)
+        internal void AddAfter(LinkedListNode<T> node, LinkedListNode<T> newNode)
         {
             if(newNode == null || node == null ) throw new ArgumentNullException();
             if (newNode.Node.NextPP != PilePointer.Invalid || newNode.Node.PreviousPP != PilePointer.Invalid)
@@ -123,6 +123,8 @@ namespace NFX.Utils
 
         public void Remove(LinkedListNode<T> node)
         {
+            if(object.ReferenceEquals(node, null)) return;
+            if(node.List != this) throw new InvalidOperationException();
             var current = First;
             while (current != null)
             {
@@ -204,7 +206,7 @@ namespace NFX.Utils
         public void Clear()
         {
             var current = First;
-            while (current != null)
+            while (!object.ReferenceEquals(current, null) )
             {
                 RemoveNode(current);
                 current = First;
@@ -267,7 +269,7 @@ namespace NFX.Utils
                     m_Pile.Delete(self.SelfPP);
                     next.PreviousPP = PilePointer.Invalid;
                     m_Pile.Put(next.SelfPP, next);
-                    m_First = new LinkedListNode<T>(m_Pile, next.SelfPP) {List = this};
+                    m_First = new LinkedListNode<T>(m_Pile, next.SelfPP, this);
                 }
                 else
                 {
@@ -281,7 +283,7 @@ namespace NFX.Utils
                     m_Pile.Delete(self.SelfPP);
                     prevous.NextPP = PilePointer.Invalid;
                     m_Pile.Put(prevous.SelfPP, prevous);
-                    m_Last = new LinkedListNode<T>(m_Pile, prevous.SelfPP) {List = this};
+                    m_Last = new LinkedListNode<T>(m_Pile, prevous.SelfPP, this);
                 }
                 else
                 {

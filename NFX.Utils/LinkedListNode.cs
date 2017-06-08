@@ -7,10 +7,12 @@ namespace NFX.Utils
     {
         #region .ctor
 
-        internal LinkedListNode(IPile pile, PilePointer self)
+        internal LinkedListNode(IPile pile, PilePointer self, LinkedList<T> list)
         {
             m_Pile = pile;
             Node = m_Pile.Get(self) as NodeData;
+            List = list;
+
         }
 
         public LinkedListNode(IPile pile)
@@ -39,7 +41,6 @@ namespace NFX.Utils
         internal NodeData Node;
         internal LinkedList<T> List;
 
-
         public T Value
         {
             get { return (T) (Node.ValuePP != PilePointer.Invalid ? m_Pile.Get(Node.ValuePP) : default(T)); }
@@ -61,9 +62,9 @@ namespace NFX.Utils
             }
         }
 
-        public LinkedListNode<T> Next => Node.NextPP != PilePointer.Invalid ? new LinkedListNode<T>(m_Pile, Node.NextPP) : null;
+        public LinkedListNode<T> Next => Node.NextPP != PilePointer.Invalid ? new LinkedListNode<T>(m_Pile, Node.NextPP, List) : null;
 
-        public LinkedListNode<T> Previous => Node.PreviousPP != PilePointer.Invalid ? new LinkedListNode<T>(m_Pile, Node.PreviousPP) : null;
+        public LinkedListNode<T> Previous => Node.PreviousPP != PilePointer.Invalid ? new LinkedListNode<T>(m_Pile, Node.PreviousPP, List) : null;
 
         #endregion
         
