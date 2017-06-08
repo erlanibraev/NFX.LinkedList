@@ -358,6 +358,14 @@ namespace NFX.Utils
                 test.AddLast(i);
             }
             Aver.AreEqual(10, test.Count);
+            var count = 0;
+            var current = test.First;
+            while (current != null)
+            {
+                count++;
+                current = current.Next;
+            }
+            Aver.AreEqual(count, test.Count);
             var j = 10;
             while (test.First != null)
             {
