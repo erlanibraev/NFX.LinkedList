@@ -37,7 +37,12 @@ namespace NFX.Utils
                 {
                     test["a--{0}".Args(i)] = Guid.NewGuid().ToString();
                 }
+                
+                Console.WriteLine(m_Pile.ObjectCount);
+                Aver.AreNotEqual(m_Pile.ObjectCount, 0);
             }
+            Console.WriteLine(m_Pile.ObjectCount);
+            Aver.AreEqual(m_Pile.ObjectCount, 0);
         }
 
         [Test]
