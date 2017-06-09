@@ -67,17 +67,16 @@ namespace NFX.Utils
         private T find(string key)
         {
             char[] keys = key.ToCharArray();
-            PrefixTreeNode parent = m_Root;
-            T result = default(T);
+            PrefixTreeNode current = m_Root;
             PilePointer ppResult = PilePointer.Invalid;
             foreach (var charKey in keys)
             {
-                if (parent.Children.ContainsKey(charKey))
+                if (current.Children.ContainsKey(charKey))
                 {
-                    parent = (PrefixTreeNode) m_Pile.Get(parent.Children[charKey]);
-                    if (parent.Value != PilePointer.Invalid)
+                    current = (PrefixTreeNode) m_Pile.Get(current.Children[charKey]);
+                    if (current.Value != PilePointer.Invalid)
                     {
-                        ppResult = parent.Value;    
+                        ppResult = current.Value;    
                     }
                 }
                 else
@@ -86,36 +85,32 @@ namespace NFX.Utils
                 }
                 
             }
-            if (ppResult != PilePointer.Invalid)
-            {
-                result = (T) m_Pile.Get(ppResult);
-            }
-            return result;
+            return ppResult != PilePointer.Invalid ? (T) m_Pile.Get(ppResult) : default(T);
         }
 
         private void setValue(string key, T value)
         {
             char[] keys = key.ToCharArray();
-            PrefixTreeNode parent = m_Root;
+            PrefixTreeNode current = m_Root;
             foreach(char charKey in keys)
             {
-                if (!parent.Children.ContainsKey(charKey))
+                if (!current.Children.ContainsKey(charKey))
                 {
-                    PrefixTreeNode child = newPrefixTreeNode(parent.Self, charKey);
-                    parent.Children[charKey] = child.Self;
-                    m_Pile.Put(parent.Self, parent);
+                    PrefixTreeNode child = newPrefixTreeNode(current.Self, charKey);
+                    current.Children[charKey] = child.Self;
+                    m_Pile.Put(current.Self, current);
                 }
-                parent = (PrefixTreeNode) m_Pile.Get(parent.Children[charKey]);
+                current = (PrefixTreeNode) m_Pile.Get(current.Children[charKey]);
             }
-            if (parent.Value != PilePointer.Invalid)
+            if (current.Value != PilePointer.Invalid)
             {
-                m_Pile.Put(parent.Value, value);
+                m_Pile.Put(current.Value, value);
             }
             else
             {
-                parent.Value = m_Pile.Put(value);
+                current.Value = m_Pile.Put(value);
             }
-            m_Pile.Put(parent.Self, parent);
+            m_Pile.Put(current.Self, current);
         }
 
         private PrefixTreeNode newPrefixTreeNode(PilePointer parent, char key)
