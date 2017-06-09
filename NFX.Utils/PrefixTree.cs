@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using NFX.ApplicationModel.Pile;
+using NFX.ServiceModel;
 
 namespace NFX.Utils
 {
-    public class PrefixTree<T> : IEnumerable<T>
+    public class PrefixTree<T>: DisposableObject, IEnumerable<T>
     {
         #region .ctor
 
@@ -21,6 +22,7 @@ namespace NFX.Utils
             m_Comparer = comparer;
             m_Root = newPrefixTreeNode(PilePointer.Invalid, default(char));
         }
+        
         
         #endregion
 
@@ -126,6 +128,30 @@ namespace NFX.Utils
             result.Self = m_Pile.Put(result);
             m_Pile.Put(result.Self, result);
             return result;
+        }
+
+        protected override void Destructor()
+        {
+            var test = m_Pile as DefaultPile;
+            if(test != null && test.Status == ControlStatus.Active) clearAll();
+            base.Destructor();
+        }
+
+        private void clearAll()
+        {
+            // todo Алгоритм рекурсивный. Надо подумать, как его сделать не рекурсивным...
+            clearItem(m_Root.Self);        
+        }
+
+        private void clearItem(PilePointer itemPP)
+        {
+            PrefixTreeNode item = (PrefixTreeNode) m_Pile.Get(itemPP);
+            foreach (var childPP in item.Children.Values)
+            {
+                clearItem(childPP);
+            }
+            if (item.Value != PilePointer.Invalid) m_Pile.Delete(item.Value);
+            m_Pile.Delete(item.Self);
         }
 
         #endregion

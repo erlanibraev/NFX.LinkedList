@@ -29,6 +29,18 @@ namespace NFX.Utils
         }
 
         [Test]
+        public void SimpleDestructorTest()
+        {
+            using (var test = new PrefixTree<string>(m_Pile))
+            {
+                for (int i = 0; i < 20; i++)
+                {
+                    test["a--{0}".Args(i)] = Guid.NewGuid().ToString();
+                }
+            }
+        }
+
+        [Test]
         public void SimpleSetTest()
         {
             var test = new PrefixTree<int>(m_Pile);
