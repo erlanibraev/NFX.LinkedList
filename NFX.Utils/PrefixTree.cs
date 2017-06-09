@@ -12,12 +12,14 @@ namespace NFX.Utils
         {
             m_Pile = pile;
             m_Comparer = Comparer<string>.Default;
+            m_Root = newPrefixTreeNode(PilePointer.Invalid, default(char));
         }
         
         public PrefixTree(IPile pile, Comparer<string> comparer)
         {
             m_Pile = pile;
             m_Comparer = comparer;
+            m_Root = newPrefixTreeNode(PilePointer.Invalid, default(char));
         }
         
         #endregion
@@ -26,11 +28,20 @@ namespace NFX.Utils
 
         private IPile m_Pile;
         private Comparer<string> m_Comparer;
-        private PilePointer m_Root;
+        private PrefixTreeNode m_Root;
 
         #endregion
 
         #region Properties
+        
+        public T this[string key] {
+            get
+            {
+                return find(key);
+            }
+            set { setValue(key, value); }
+        }
+        
 
         #endregion
 
@@ -52,7 +63,90 @@ namespace NFX.Utils
         #endregion
         
         #region .pvt
-        
+
+        private T find(string key)
+        {
+            char[] keys = key.ToCharArray();
+            PrefixTreeNode parent = m_Root;
+            T result = default(T);
+            PilePointer ppResult = PilePointer.Invalid;
+            foreach (var charKey in keys)
+            {
+                if (parent.Children.ContainsKey(charKey))
+                {
+                    parent = (PrefixTreeNode) m_Pile.Get(parent.Children[charKey]);
+                    if (parent.Value != PilePointer.Invalid)
+                    {
+                        ppResult = parent.Value;    
+                    }
+                }
+                else
+                {
+                    break;
+                }
+                
+            }
+            if (ppResult != PilePointer.Invalid)
+            {
+                result = (T) m_Pile.Get(ppResult);
+            }
+            return result;
+        }
+
+        private void setValue(string key, T value)
+        {
+            char[] keys = key.ToCharArray();
+            PrefixTreeNode parent = m_Root;
+            foreach(char charKey in keys)
+            {
+                if (!parent.Children.ContainsKey(charKey))
+                {
+                    PrefixTreeNode child = newPrefixTreeNode(parent.Self, charKey);
+                    parent.Children[charKey] = child.Self;
+                    m_Pile.Put(parent.Self, parent);
+                }
+                parent = (PrefixTreeNode) m_Pile.Get(parent.Children[charKey]);
+            }
+            if (parent.Value != PilePointer.Invalid)
+            {
+                m_Pile.Put(parent.Value, value);
+            }
+            else
+            {
+                parent.Value = m_Pile.Put(value);
+            }
+            m_Pile.Put(parent.Self, parent);
+        }
+
+        private PrefixTreeNode newPrefixTreeNode(PilePointer parent, char key)
+        {
+            PrefixTreeNode result = new PrefixTreeNode()
+            {
+                Self = PilePointer.Invalid,
+                Value = PilePointer.Invalid,
+                Parent = parent,
+                Children = new Dictionary<char, PilePointer>(),
+                Key = key
+            };
+            result.Self = m_Pile.Put(result);
+            m_Pile.Put(result.Self, result);
+            return result;
+        }
+
         #endregion
+
+        internal struct PrefixTreeNode
+        {
+            internal PilePointer Self;
+            internal PilePointer Value;
+            internal char Key;
+            internal PilePointer Parent;
+            internal Dictionary<char, PilePointer> Children;
+
+            public override string ToString()
+            {
+                return "self = {0}; value = {1}; key = {2}; parent={3}; Children = {4}".Args(Self.ToString(), Value.ToString(), Key, Parent.ToString(), Children != null ? Children.ToString() : "");
+            }
+        }
     }
 }

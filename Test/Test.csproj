@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="LinkedListNodeTest.cs" />
     <Compile Include="LinkedListTest.cs" />
+    <Compile Include="PrefixTreeTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
