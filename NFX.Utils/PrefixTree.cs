@@ -49,7 +49,7 @@ namespace NFX.Utils
         #endregion
 
         #region Public
-        
+
         public IEnumerator<T> GetEnumerator()
         {
             throw new System.NotImplementedException();
