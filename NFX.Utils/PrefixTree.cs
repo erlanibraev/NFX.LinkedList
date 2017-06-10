@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using NFX.ApplicationModel.Pile;
 using NFX.ServiceModel;
 
@@ -12,15 +13,15 @@ namespace NFX.Utils
         public PrefixTree(IPile pile)
         {
             m_Pile = pile;
-            m_Comparer = Comparer<string>.Default;
-            m_Root = newPrefixTreeNode(PilePointer.Invalid, default(char));
+            m_Comparer = EqualityComparer<string>.Default;
+            m_Root = newPrefixTreeNode(PilePointer.Invalid, "");
         }
         
-        public PrefixTree(IPile pile, Comparer<string> comparer)
+        public PrefixTree(IPile pile, IEqualityComparer<string> comparer)
         {
             m_Pile = pile;
             m_Comparer = comparer;
-            m_Root = newPrefixTreeNode(PilePointer.Invalid, default(char));
+            m_Root = newPrefixTreeNode(PilePointer.Invalid, "");
         }
         
         
@@ -29,7 +30,7 @@ namespace NFX.Utils
         #region Fields
 
         private IPile m_Pile;
-        private Comparer<string> m_Comparer;
+        private IEqualityComparer<string> m_Comparer;
         private PrefixTreeNode m_Root;
 
         #endregion
@@ -71,11 +72,13 @@ namespace NFX.Utils
             char[] keys = key.ToCharArray();
             PrefixTreeNode current = m_Root;
             PilePointer ppResult = PilePointer.Invalid;
+            string strKey = "";
             foreach (var charKey in keys)
             {
-                if (current.Children.ContainsKey(charKey))
+                strKey += charKey;
+                if (current.Children.Keys.Contains(strKey, m_Comparer))
                 {
-                    current = (PrefixTreeNode) m_Pile.Get(current.Children[charKey]);
+                    current = (PrefixTreeNode) m_Pile.Get(current.Children[strKey]);
                     if (current.Value != PilePointer.Invalid)
                     {
                         ppResult = current.Value;    
@@ -94,15 +97,17 @@ namespace NFX.Utils
         {
             char[] keys = key.ToCharArray();
             PrefixTreeNode current = m_Root;
+            string strKey = "";
             foreach(char charKey in keys)
             {
-                if (!current.Children.ContainsKey(charKey))
+                strKey += charKey;
+                if (!current.Children.Keys.Contains(strKey, m_Comparer))
                 {
-                    PrefixTreeNode child = newPrefixTreeNode(current.Self, charKey);
-                    current.Children[charKey] = child.Self;
+                    PrefixTreeNode child = newPrefixTreeNode(current.Self, strKey);
+                    current.Children[strKey] = child.Self;
                     m_Pile.Put(current.Self, current);
                 }
-                current = (PrefixTreeNode) m_Pile.Get(current.Children[charKey]);
+                current = (PrefixTreeNode) m_Pile.Get(current.Children[strKey]);
             }
             if (current.Value != PilePointer.Invalid)
             {
@@ -115,14 +120,14 @@ namespace NFX.Utils
             m_Pile.Put(current.Self, current);
         }
 
-        private PrefixTreeNode newPrefixTreeNode(PilePointer parent, char key)
+        private PrefixTreeNode newPrefixTreeNode(PilePointer parent, string key)
         {
             PrefixTreeNode result = new PrefixTreeNode()
             {
                 Self = PilePointer.Invalid,
                 Value = PilePointer.Invalid,
                 Parent = parent,
-                Children = new Dictionary<char, PilePointer>(),
+                Children = new Dictionary<string, PilePointer>(),
                 Key = key
             };
             result.Self = m_Pile.Put(result);
@@ -160,9 +165,9 @@ namespace NFX.Utils
         {
             internal PilePointer Self;
             internal PilePointer Value;
-            internal char Key;
+            internal string Key;
             internal PilePointer Parent;
-            internal Dictionary<char, PilePointer> Children;
+            internal Dictionary<string, PilePointer> Children;
 
             public override string ToString()
             {
