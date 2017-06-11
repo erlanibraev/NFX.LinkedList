@@ -91,6 +91,8 @@ namespace NFX.Utils
                 Aver.AreEqual(test["a--{0}".Args(REMOVE_VALUE)], default(int));
                 Aver.AreEqual(test["a--{0}".Args(REMOVE_VALUE_1)], default(int));
                 Aver.AreEqual(test["a--{0}".Args(REMOVE_VALUE_2)], default(int));
+                Aver.AreEqual(test["a--{0}".Args(19)],19);
+                Aver.AreEqual(test["a--{0}".Args(12)],12);
             }
         }
     }
