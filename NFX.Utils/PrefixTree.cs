@@ -23,8 +23,7 @@ namespace NFX.Utils
             m_Comparer = comparer;
             m_Root = newPrefixTreeNode(PilePointer.Invalid, "");
         }
-        
-        
+
         #endregion
 
         #region Fields
@@ -49,6 +48,48 @@ namespace NFX.Utils
         #endregion
 
         #region Public
+
+        public bool Remove(string key)
+        {
+            bool result = false;
+            char[] keys = key.ToCharArray();
+            PrefixTreeNode current = m_Root;
+            string strKey = "";
+            foreach (var charKey in keys)
+            {
+                strKey += charKey;
+                if (current.Children.Keys.Contains(strKey, m_Comparer))
+                {
+                    var prev = current;
+                    current = (PrefixTreeNode) m_Pile.Get(current.Children[strKey]);
+                    if (current.Key == key)
+                    {
+                        if (current.Value != PilePointer.Invalid)
+                        {
+                            m_Pile.Delete(current.Value);
+                            current.Value = PilePointer.Invalid;
+                            if (current.Children.Count == 0)
+                            {
+                                m_Pile.Delete(current.Self);
+                                prev.Children.Remove(key);
+                                m_Pile.Put(prev.Self, prev);
+                            }
+                            else
+                            {
+                                m_Pile.Put(current.Self, current);
+                            }
+                            result = true;
+                        }
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+            return result;
+        }
 
         public IEnumerator<T> GetEnumerator()
         {
@@ -79,9 +120,13 @@ namespace NFX.Utils
                 if (current.Children.Keys.Contains(strKey, m_Comparer))
                 {
                     current = (PrefixTreeNode) m_Pile.Get(current.Children[strKey]);
-                    if (current.Value != PilePointer.Invalid)
+                    if (current.Key == key)
                     {
-                        ppResult = current.Value;    
+                        if (current.Value != PilePointer.Invalid)
+                        {
+                            ppResult = current.Value;    
+                        }
+                        break;
                     }
                 }
                 else

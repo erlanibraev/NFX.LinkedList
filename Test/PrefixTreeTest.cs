@@ -65,5 +65,33 @@ namespace NFX.Utils
             test["12"] = 21;
             Aver.AreEqual(test["12"], 21);
         }
+
+        [Test]
+        public void SimpleRemoveTest()
+        {
+            using (var test = new PrefixTree<int>(m_Pile))
+            {
+                const int REMOVE_VALUE = 15;
+                const int REMOVE_VALUE_1 = 1;
+                const int REMOVE_VALUE_2 = 17;
+                for (int i = 0; i < 20; i++)
+                {
+                    test["a--{0}".Args(i)] = i;
+                }
+                test.Remove("a--{0}".Args(REMOVE_VALUE));
+                Console.WriteLine(test["a--{0}".Args(REMOVE_VALUE)]);
+                
+                test.Remove("a--{0}".Args(REMOVE_VALUE_1));
+                Console.WriteLine(test["a--{0}".Args(REMOVE_VALUE_1)]);
+
+                test.Remove("a--{0}".Args(REMOVE_VALUE_2));
+                Console.WriteLine(test["a--{0}".Args(REMOVE_VALUE_2)]);
+                
+                
+                Aver.AreEqual(test["a--{0}".Args(REMOVE_VALUE)], default(int));
+                Aver.AreEqual(test["a--{0}".Args(REMOVE_VALUE_1)], default(int));
+                Aver.AreEqual(test["a--{0}".Args(REMOVE_VALUE_2)], default(int));
+            }
+        }
     }
 }
