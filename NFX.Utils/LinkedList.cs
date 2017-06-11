@@ -5,7 +5,7 @@ using NFX.ApplicationModel.Pile;
 
 namespace NFX.Utils
 {
-    public class LinkedList<T> : IEnumerable<T>
+    public class LinkedList<T> : DisposableObject, IEnumerable<T>
     {
 
         public LinkedList(IPile pile)
@@ -205,11 +205,9 @@ namespace NFX.Utils
 
         public void Clear()
         {
-            var current = First;
-            while (!object.ReferenceEquals(current, null) )
+            while (!object.ReferenceEquals(First, null) )
             {
-                RemoveNode(current);
-                current = First;
+                RemoveFirst();
             }
         }
 
@@ -298,8 +296,15 @@ namespace NFX.Utils
                 m_Pile.Delete(self.SelfPP);
                 m_Pile.Put(next.SelfPP, next);
                 m_Pile.Put(prevous.SelfPP, prevous);
+                m_First = new LinkedListNode<T>(m_Pile, m_First.Node.SelfPP, this);
+                m_Last = new LinkedListNode<T>(m_Pile, m_Last.Node.SelfPP, this);
             }
             m_Count--;
+        }
+
+        protected override void Destructor()
+        {
+            Clear();
         }
     }
 

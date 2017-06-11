@@ -11,6 +11,7 @@ namespace NFX.Utils
         {
             m_Pile = pile;
             Node = m_Pile.Get(self) as NodeData;
+            if (Node == null) throw new AccessViolationException();
             List = list;
 
         }
@@ -61,7 +62,7 @@ namespace NFX.Utils
                 }
             }
         }
-
+        
         public LinkedListNode<T> Next => Node.NextPP != PilePointer.Invalid ? new LinkedListNode<T>(m_Pile, Node.NextPP, List) : null;
 
         public LinkedListNode<T> Previous => Node.PreviousPP != PilePointer.Invalid ? new LinkedListNode<T>(m_Pile, Node.PreviousPP, List) : null;

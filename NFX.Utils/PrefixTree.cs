@@ -15,6 +15,7 @@ namespace NFX.Utils
             m_Pile = pile;
             m_Comparer = EqualityComparer<string>.Default;
             m_Root = newPrefixTreeNode(PilePointer.Invalid, "");
+            m_Keys = null;
         }
         
         public PrefixTree(IPile pile, IEqualityComparer<string> comparer)
@@ -22,6 +23,7 @@ namespace NFX.Utils
             m_Pile = pile;
             m_Comparer = comparer;
             m_Root = newPrefixTreeNode(PilePointer.Invalid, "");
+            m_Keys = null;
         }
 
         #endregion
@@ -31,6 +33,7 @@ namespace NFX.Utils
         private IPile m_Pile;
         private IEqualityComparer<string> m_Comparer;
         private PrefixTreeNode m_Root;
+        private LinkedList<string> m_Keys;
 
         #endregion
 
@@ -44,6 +47,7 @@ namespace NFX.Utils
             set { setValue(key, value); }
         }
         
+        public LinkedList<string> Keys { get { return makeKeys(); }}
 
         #endregion
 
@@ -62,7 +66,7 @@ namespace NFX.Utils
                 {
                     var prev = current;
                     current = (PrefixTreeNode) m_Pile.Get(current.Children[strKey]);
-                    if (current.Key == key)
+                    if (m_Comparer.Equals(current.Key, key) )
                     {
                         if (current.Value != PilePointer.Invalid)
                         {
@@ -93,7 +97,7 @@ namespace NFX.Utils
 
         public IEnumerator<T> GetEnumerator()
         {
-            throw new System.NotImplementedException();
+            return new PrefixTreeEnumerator<T>(this);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -190,6 +194,7 @@ namespace NFX.Utils
         private void clearAll()
         {
             // todo Алгоритм рекурсивный. Надо подумать, как его сделать не рекурсивным...
+            if(m_Keys != null) m_Keys.Clear();
             clearItem(m_Root.Self);        
         }
 
@@ -202,6 +207,27 @@ namespace NFX.Utils
             }
             if (item.Value != PilePointer.Invalid) m_Pile.Delete(item.Value);
             m_Pile.Delete(item.Self);
+        }
+        
+        private LinkedList<string> makeKeys()
+        {
+            if(m_Keys != null) m_Keys.Clear();
+            LinkedList<string> result = new LinkedList<string>(m_Pile);
+            var stack = new List<PrefixTreeNode>();
+            stack.Add(m_Root);
+            while (stack.Count > 0)
+            {
+                var current = stack[0];
+                stack.RemoveAt(0);
+                foreach (var childKey in current.Children.Keys)
+                {
+                    PrefixTreeNode child = (PrefixTreeNode) m_Pile.Get(current.Children[childKey]);
+                    stack.Add(child);
+                    if(child.Value != PilePointer.Invalid) result.AddLast(childKey);
+                }                
+            }
+            m_Keys = result;
+            return result;
         }
 
         #endregion
@@ -218,6 +244,61 @@ namespace NFX.Utils
             {
                 return "self = {0}; value = {1}; key = {2}; parent={3}; Children = {4}".Args(Self.ToString(), Value.ToString(), Key, Parent.ToString(), Children != null ? Children.ToString() : "");
             }
+        }
+    }
+
+    internal class PrefixTreeEnumerator<T> : IEnumerator<T>
+    {
+        
+        public PrefixTreeEnumerator(PrefixTree<T> prefixTree)
+        {
+            m_PrefixTree = prefixTree;
+            m_Keys = prefixTree.Keys;
+            m_Current = m_Keys.First;
+            first = true;
+        }
+
+        private PrefixTree<T> m_PrefixTree;
+        private LinkedList<string> m_Keys;
+        private LinkedListNode<string> m_Current;
+        private bool first;
+
+        public void Dispose()
+        {
+            m_Keys.Clear();
+            m_Keys = null;
+        }
+
+        public bool MoveNext()
+        {
+            if (!first)
+            {
+                m_Current = m_Current.Next;
+            }
+            else
+            {
+                first = false;
+            }
+            return m_Current != null;
+        }
+
+        public void Reset()
+        {
+            m_Current = m_Keys.First;
+            first = true;
+        }
+
+        public T Current
+        {
+            get
+            {
+                return m_Current != null ? m_PrefixTree[m_Current.Value] : default(T);
+            }
+        }
+
+        object IEnumerator.Current
+        {
+            get { return Current; }
         }
     }
 }
