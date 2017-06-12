@@ -25,8 +25,10 @@ namespace NFX.Utils
         [Test]
         public void SimpleTest()
         {
-            var test = new PrefixTree<int>(m_Pile);
-            Aver.IsNotNull(test);
+            using (var test = new PrefixTree<int>(m_Pile))
+            {
+                Aver.IsNotNull(test);
+            }
         }
 
         [Test]
@@ -49,22 +51,23 @@ namespace NFX.Utils
         [Test]
         public void SimpleSetTest()
         {
-            var test = new PrefixTree<int>(m_Pile);
-            test["1"] = 1;
-            Console.WriteLine(test["1"]);
-            test["12"] = 12;
-            Console.WriteLine(test["12"]);
-            test["22"] = 22;    
-            Console.WriteLine(test["22"]);
-            Console.WriteLine(test["2"]);
-            Aver.AreEqual(test["1"], 1);
-            Aver.AreEqual(test["12"], 12);
-            Aver.AreEqual(test["22"], 22);
-            Aver.AreEqual(test["2"], 0);
-            Aver.AreEqual(test["0"], 0);
-
-            test["12"] = 21;
-            Aver.AreEqual(test["12"], 21);
+            using(var test = new PrefixTree<int>(m_Pile)) {
+                test["1"] = 1;
+                Console.WriteLine(test["1"]);
+                test["12"] = 12;
+                Console.WriteLine(test["12"]);
+                test["22"] = 22;    
+                Console.WriteLine(test["22"]);
+                Console.WriteLine(test["2"]);
+                Aver.AreEqual(test["1"], 1);
+                Aver.AreEqual(test["12"], 12);
+                Aver.AreEqual(test["22"], 22);
+                Aver.AreEqual(test["2"], 0);
+                Aver.AreEqual(test["0"], 0);
+    
+                test["12"] = 21;
+                Aver.AreEqual(test["12"], 21);
+            }
         }
 
         [Test]
@@ -159,11 +162,12 @@ namespace NFX.Utils
             Console.WriteLine(m_Pile.ObjectCount);
         }
 
-        [TestCase(100000)]
+        [TestCase(10000000)]
         public void SimpleMassivTest(int count)
         {
             using (var test = new PrefixTree<int>(m_Pile))
             {
+                String lastKey = "";
                 Console.WriteLine(DateTime.Now);
                 for (int i = 0; i < count; i++)
                 {
@@ -171,14 +175,15 @@ namespace NFX.Utils
                     // key = "TEST KEY {0}".Args(i);
                     key = key.Substring(0, 3)+" "+i.ToString();
                     test[key] = i;
+                    lastKey = key;
                 }
                 Console.WriteLine(DateTime.Now);
                 Console.WriteLine(m_Pile.ObjectCount);
-                Console.WriteLine(DateTime.Now);
+/*                Console.WriteLine(DateTime.Now);
                 LinkedList<string> keys = test.Keys;
                 Console.WriteLine(keys.Count);
                 Console.WriteLine(DateTime.Now);
-                String lastKey = "";
+                
                 foreach (var key in keys)
                 {
                     //Console.Write(key+"; ");
@@ -186,7 +191,9 @@ namespace NFX.Utils
                 }
                 Console.WriteLine();
                 Console.WriteLine(DateTime.Now);
-                Console.WriteLine(keys.Find(lastKey).Value);
+                Console.WriteLine(keys.Find(lastKey).Value);*/
+                Console.WriteLine(DateTime.Now);
+                Console.WriteLine(test[lastKey]);
                 Console.WriteLine(DateTime.Now);
             }
             Console.WriteLine(m_Pile.ObjectCount);

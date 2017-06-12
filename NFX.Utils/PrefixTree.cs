@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace NFX.Utils
         {
             m_Pile = pile;
             m_Comparer = EqualityComparer<string>.Default;
-            m_Root = newPrefixTreeNode(PilePointer.Invalid, "");
+            m_Root = newPrefixTreeNode(PilePointer.Invalid, "").Self;
             m_Keys = null;
         }
         
@@ -22,7 +23,7 @@ namespace NFX.Utils
         {
             m_Pile = pile;
             m_Comparer = comparer;
-            m_Root = newPrefixTreeNode(PilePointer.Invalid, "");
+            m_Root = newPrefixTreeNode(PilePointer.Invalid, "").Self;
             m_Keys = null;
         }
 
@@ -32,7 +33,7 @@ namespace NFX.Utils
 
         private IPile m_Pile;
         private IEqualityComparer<string> m_Comparer;
-        private PrefixTreeNode m_Root;
+        private PilePointer m_Root;
         private LinkedList<string> m_Keys;
 
         #endregion
@@ -57,26 +58,48 @@ namespace NFX.Utils
         {
             bool result = false;
             char[] keys = key.ToCharArray();
-            PrefixTreeNode current = m_Root;
+            PrefixTreeNode current = (PrefixTreeNode) m_Pile.Get(m_Root);
             string strKey = "";
             foreach (var charKey in keys)
             {
                 strKey += charKey;
-                if (current.Children.Keys.Contains(strKey, m_Comparer))
+                var node = current.Children != PilePointer.Invalid ? new LinkedListNode<PrefixTreeNode>(m_Pile, current.Children, null) : null;
+                bool contains = false;
+                while (node != null)
                 {
-                    var prev = current;
-                    current = (PrefixTreeNode) m_Pile.Get(current.Children[strKey]);
+                    if (m_Comparer.Equals(node.Value.Key, strKey))
+                    {
+                        contains = true;
+                        break;
+                    }
+                    node = node.Next;
+                }
+                if (contains)
+                {
+                    current = node.Value;
                     if (m_Comparer.Equals(current.Key, key) )
                     {
                         if (current.Value != PilePointer.Invalid)
                         {
                             m_Pile.Delete(current.Value);
                             current.Value = PilePointer.Invalid;
-                            if (current.Children.Count == 0)
+                            if (current.Children == PilePointer.Invalid)
                             {
                                 m_Pile.Delete(current.Self);
-                                prev.Children.Remove(key);
-                                m_Pile.Put(prev.Self, prev);
+                                var prev = node.Previous;
+                                var next = node.Next;
+                                if (prev != null)
+                                {
+                                    prev.Node.NextPP = next != null ? next.Node.SelfPP : PilePointer.Invalid;
+                                    m_Pile.Put(prev.Node.SelfPP, prev.Node);
+                                }
+
+                                if (next != null)
+                                {
+                                    next.Node.PreviousPP = prev != null ? prev.Node.SelfPP : PilePointer.Invalid;
+                                    m_Pile.Put(next.Node.SelfPP, next.Node);
+                                }
+                                m_Pile.Delete(node.Node.SelfPP);
                             }
                             else
                             {
@@ -115,15 +138,26 @@ namespace NFX.Utils
         private T find(string key)
         {
             char[] keys = key.ToCharArray();
-            PrefixTreeNode current = m_Root;
+            PrefixTreeNode current = (PrefixTreeNode) m_Pile.Get(m_Root);
             PilePointer ppResult = PilePointer.Invalid;
             string strKey = "";
             foreach (var charKey in keys)
             {
                 strKey += charKey;
-                if (current.Children.Keys.Contains(strKey, m_Comparer))
+                var node = current.Children != PilePointer.Invalid ? new LinkedListNode<PrefixTreeNode>(m_Pile, current.Children, null) : null;
+                bool contains = false;
+                while (node != null)
                 {
-                    current = (PrefixTreeNode) m_Pile.Get(current.Children[strKey]);
+                    if (m_Comparer.Equals(node.Value.Key, strKey))
+                    {
+                        contains = true;
+                        break;
+                    }
+                    node = node.Next;
+                }
+                if (contains)
+                {
+                    current = node.Value;
                     if (current.Key == key)
                     {
                         if (current.Value != PilePointer.Invalid)
@@ -145,18 +179,45 @@ namespace NFX.Utils
         private void setValue(string key, T value)
         {
             char[] keys = key.ToCharArray();
-            PrefixTreeNode current = m_Root;
+            PrefixTreeNode current = (PrefixTreeNode) m_Pile.Get(m_Root);
             string strKey = "";
             foreach(char charKey in keys)
             {
                 strKey += charKey;
-                if (!current.Children.Keys.Contains(strKey, m_Comparer))
+                var node = current.Children != PilePointer.Invalid ? new LinkedListNode<PrefixTreeNode>(m_Pile, current.Children, null) : null;
+                bool contains = false;
+                LinkedListNode<PrefixTreeNode> prev = null;
+                while (node != null)
+                {
+                    if (m_Comparer.Equals(node.Value.Key, strKey))
+                    {
+                        contains = true;
+                        break;
+                    }
+                    prev = node;
+                    node = node.Next;
+                }
+                
+                if (!contains)
                 {
                     PrefixTreeNode child = newPrefixTreeNode(current.Self, strKey);
-                    current.Children[strKey] = child.Self;
+                    node = new LinkedListNode<PrefixTreeNode>(m_Pile);
+                    node.Node.ValuePP = child.Self;
+                    if (prev != null)
+                    {
+                        node.Node.PreviousPP = prev.Node.SelfPP;
+                        prev.Node.NextPP = node.Node.SelfPP;
+                        m_Pile.Put(prev.Node.SelfPP, prev.Node);
+                    }
+                    else
+                    {
+                        current.Children = node.Node.SelfPP;
+                    }
+                    
+                    m_Pile.Put(node.Node.SelfPP, node.Node);
                     m_Pile.Put(current.Self, current);
                 }
-                current = (PrefixTreeNode) m_Pile.Get(current.Children[strKey]);
+                current = node.Value;
             }
             if (current.Value != PilePointer.Invalid)
             {
@@ -176,7 +237,7 @@ namespace NFX.Utils
                 Self = PilePointer.Invalid,
                 Value = PilePointer.Invalid,
                 Parent = parent,
-                Children = new Dictionary<string, PilePointer>(),
+                Children = PilePointer.Invalid,
                 Key = key
             };
             result.Self = m_Pile.Put(result);
@@ -195,15 +256,19 @@ namespace NFX.Utils
         {
             // todo Алгоритм рекурсивный. Надо подумать, как его сделать не рекурсивным...
             if(m_Keys != null) m_Keys.Clear();
-            clearItem(m_Root.Self);        
+            clearItem(m_Root);        
         }
 
         private void clearItem(PilePointer itemPP)
         {
+            if(itemPP == PilePointer.Invalid) return;
             PrefixTreeNode item = (PrefixTreeNode) m_Pile.Get(itemPP);
-            foreach (var childPP in item.Children.Values)
+            NodeData node = (NodeData) (item.Children != PilePointer.Invalid ? m_Pile.Get(item.Children) : null);
+            while(node != null)
             {
-                clearItem(childPP);
+                clearItem(node.ValuePP);
+                m_Pile.Delete(node.SelfPP);
+                node = node.NextPP != PilePointer.Invalid ? (NodeData) m_Pile.Get(node.NextPP) : null;
             }
             if (item.Value != PilePointer.Invalid) m_Pile.Delete(item.Value);
             m_Pile.Delete(item.Self);
@@ -214,16 +279,18 @@ namespace NFX.Utils
             if(m_Keys != null) m_Keys.Clear();
             LinkedList<string> result = new LinkedList<string>(m_Pile);
             var stack = new List<PrefixTreeNode>();
-            stack.Add(m_Root);
+            stack.Add((PrefixTreeNode) m_Pile.Get(m_Root));
             while (stack.Count > 0)
             {
                 var current = stack[0];
                 stack.RemoveAt(0);
-                foreach (var childKey in current.Children.Keys)
+                var node = current.Children != PilePointer.Invalid ? new LinkedListNode<PrefixTreeNode>(m_Pile, current.Children, null) : null;
+                while(node != null)
                 {
-                    PrefixTreeNode child = (PrefixTreeNode) m_Pile.Get(current.Children[childKey]);
+                    PrefixTreeNode child = (PrefixTreeNode) m_Pile.Get(node.Value.Self);
                     stack.Add(child);
-                    if(child.Value != PilePointer.Invalid) result.AddLast(childKey);
+                    if(child.Value != PilePointer.Invalid) result.AddLast(node.Value.Key);
+                    node = node.Next;
                 }                
             }
             m_Keys = result;
@@ -238,7 +305,7 @@ namespace NFX.Utils
             internal PilePointer Value;
             internal string Key;
             internal PilePointer Parent;
-            internal Dictionary<string, PilePointer> Children;
+            internal PilePointer Children;
 
             public override string ToString()
             {
