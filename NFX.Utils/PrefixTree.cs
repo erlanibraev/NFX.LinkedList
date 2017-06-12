@@ -1,7 +1,5 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using NFX.ApplicationModel.Pile;
 using NFX.ServiceModel;
 
@@ -40,7 +38,8 @@ namespace NFX.Utils
 
         #region Properties
         
-        public T this[string key] {
+        public T this[string key] 
+        {
             get
             {
                 return find(key);
