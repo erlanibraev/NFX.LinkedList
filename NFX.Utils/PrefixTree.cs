@@ -147,10 +147,10 @@ namespace NFX.Utils
                 strKey += charKey;
                 int i = 0;
                 contains = false;
-                for(i = 0; i < current.Children.Length; i ++)
+                for(i = 0; i < current.Children.Length; i++)
                 {
                     if (current.Children[i].Key > charKey || current.Children[i].ValuePP == PilePointer.Invalid) break;
-                    if(current.Children[i].Key == charKey)
+                    if (current.Children[i].Key == charKey)
                     {
                         contains = true;
                         break;
@@ -169,10 +169,12 @@ namespace NFX.Utils
                         }
                         else
                         {
-                            List<Entry> tmpList = current.Children.ToList<Entry>();
                             Entry entry = new Entry() { Key = charKey, ValuePP = m_Pile.Put(tmp) };
-                            tmpList.Insert(i, entry);
-                            current.Children = tmpList.ToArray<Entry>();
+                            Entry[] newArray = new Entry[current.Children.Length + 1];
+                            Array.Copy(current.Children, 0, newArray, 0, i);
+                            newArray[i] = entry;
+                            Array.Copy(current.Children, i, newArray, i+1, current.Children.Length - i);
+                            current.Children = newArray;
                             m_Pile.Put(currentPP, current);
                         }
                     } 
