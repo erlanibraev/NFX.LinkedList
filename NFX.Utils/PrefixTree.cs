@@ -4,11 +4,10 @@ using NFX.ApplicationModel.Pile;
 using NFX.ServiceModel;
 using System.Linq;
 using System;
-using NFX.IO.Net.Gate;
 
 namespace NFX.Utils
 {
-    public class PrefixTree<T>: DisposableObject, IEnumerable<T>
+    public class PrefixTree<T>: DisposableObject, IEnumerable<KeyValuePair<string, T>>
     {
         public static readonly int SIZE = 10;
 
@@ -25,8 +24,9 @@ namespace NFX.Utils
 
         #region Fields
 
-        internal IPile m_Pile;
-        internal PilePointer m_Root;
+        private IPile m_Pile;
+        private PilePointer m_Root;
+        private int m_Count;
 
         #endregion
 
@@ -42,6 +42,8 @@ namespace NFX.Utils
         }
         
         public IEnumerable<string> Keys { get { return makeKeys(); }}
+        
+        public int Count {get { return GetCount(); }}
 
         #endregion
 
@@ -57,13 +59,13 @@ namespace NFX.Utils
                 m_Pile.Delete(current.ValuePP);
                 current.ValuePP = PilePointer.Invalid;
                 m_Pile.Put(currentPP, current);
+                m_Count--;
             }
 
             return result;
-            throw new System.NotImplementedException();
         }
 
-        public IEnumerator<T> GetEnumerator()
+        public IEnumerator<KeyValuePair<string, T>> GetEnumerator()
         {
             throw new System.NotImplementedException();
             // return new PrefixTreeEnumerator<T>(this);
@@ -167,6 +169,7 @@ namespace NFX.Utils
                             current.Children[i].Key = charKey;
                             current.Children[i].ValuePP = m_Pile.Put(tmp);
                             m_Pile.Put(currentPP, current);
+                            m_Count++;
                         }
                         else
                         {
@@ -186,6 +189,7 @@ namespace NFX.Utils
                         current.Children[i].Key = charKey;
                         current.Children[i].ValuePP = m_Pile.Put(tmp);
                         m_Pile.Put(currentPP, current);
+                        m_Count++;
                     }
                 }
                 currentPP = current.Children[i].ValuePP;
@@ -234,6 +238,11 @@ namespace NFX.Utils
         private IEnumerable<string> makeKeys()
         {
             return new Keys(m_Root, m_Pile);
+        }
+
+        private int GetCount()
+        {
+            return m_Count;
         }
 
         #endregion

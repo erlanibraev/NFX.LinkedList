@@ -141,11 +141,41 @@ namespace NFX.Utils
                     Aver.IsTrue(keys.Contains("a--{0}".Args(i)));
                 }
             }
+            Console.WriteLine(" --- ");
+            Console.WriteLine(m_Pile.ObjectCount);            
         }
 
         [Test]
+        public void SimpleCountTest()
+        {
+            using (var test = new PrefixTree<int>(m_Pile))
+            {
+                const int COUNT = 1000;
+                for (int i = 0; i < COUNT; i++)
+                {
+                    test["{0}".Args(i)] = i;
+                }
+                Aver.AreEqual(test.Count, 1000);
+                var rnd = new Random();
+                int[] delete = {rnd.Next(COUNT), rnd.Next(COUNT)};
+                Array.Sort(delete) ;
+                for (int i = delete[0]; i < delete[1]; i++)
+                {
+                    test.Remove("{0}".Args(i));
+                }
+                int deleted = delete[1] - delete[0];
+                Aver.AreEqual(test.Count, COUNT - deleted);
+
+                test.Remove("{0}".Args(COUNT - 1));
+                Aver.AreEqual(test.Count, COUNT - deleted - 1);
+                
+            }
+        }
+        
+        [Test]
         public void SimpleEnumaratorTest()
         {
+/*
             using (var test = new PrefixTree<int>(m_Pile))
             {
                 const int COUNT = 100;
@@ -154,13 +184,13 @@ namespace NFX.Utils
                 {
                     test[Guid.NewGuid().ToString()] = i;
                 }
-/*
+
                 Console.WriteLine(DateTime.Now);
                 Console.WriteLine(test.Keys.Count);
                 Console.WriteLine(DateTime.Now);
                 Console.WriteLine(" --- ");
                 Aver.AreEqual(test.Keys.Count, COUNT);
-*/
+
                 Console.WriteLine(DateTime.Now);
                 int j = 0;
                 int sum = 0;
@@ -181,6 +211,7 @@ namespace NFX.Utils
             }
             Console.WriteLine(" --- ");
             Console.WriteLine(m_Pile.ObjectCount);
+*/
         }
 
         [TestCase(1000000)]
