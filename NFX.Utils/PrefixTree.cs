@@ -47,8 +47,18 @@ namespace NFX.Utils
         #region Public
 
         public bool Remove(string key)
-        { 
-           
+        {
+            bool result = false;
+            PilePointer currentPP = findPP(key);
+            if (currentPP != PilePointer.Invalid)
+            {
+                PrefixTreeNode current = (PrefixTreeNode) m_Pile.Get(currentPP);
+                m_Pile.Delete(current.ValuePP);
+                current.ValuePP = PilePointer.Invalid;
+                m_Pile.Put(currentPP, current);
+            }
+
+            return result;
             throw new System.NotImplementedException();
         }
 
@@ -68,7 +78,6 @@ namespace NFX.Utils
         #region Protected
         protected override void Destructor()
         {
-            return; // todo Сделать!!!!
             var test = m_Pile as DefaultPile;
             if (test != null && test.Status == ControlStatus.Active) clearAll();
             base.Destructor();
@@ -95,7 +104,7 @@ namespace NFX.Utils
                 PrefixTreeNode current = (PrefixTreeNode)m_Pile.Get(currentPP);
                 result = current.ValuePP != PilePointer.Invalid ? (T) m_Pile.Get(current.ValuePP) : default(T); 
             }
-            return result
+            return result;
         }
 
         private PilePointer findPP(string Key)
@@ -196,16 +205,24 @@ namespace NFX.Utils
 
         private void clearAll()
         {
-            // todo Алгоритм рекурсивный. Надо подумать, как его сделать не рекурсивным...
-            throw new System.NotImplementedException();
-            clearItem(m_Root);        
+            var stack = new List<PilePointer> {m_Root};
+            while (stack.Any())
+            {
+                var currentPP = stack[0];
+                var current = (PrefixTreeNode) m_Pile.Get(currentPP);
+                foreach (var entry in current.Children)
+                {
+                    if(entry.ValuePP != PilePointer.Invalid) stack.Add(entry.ValuePP);
+                }
+                if (current.ValuePP != PilePointer.Invalid) m_Pile.Delete(current.ValuePP);
+                if (currentPP != PilePointer.Invalid)
+                {
+                    m_Pile.Delete(currentPP);
+                    stack.Remove(currentPP);
+                }
+            }                    
         }
 
-        private void clearItem(PilePointer itemPP)
-        {
-            throw new System.NotImplementedException();
-        }
-        
         private ICollection<string> makeKeys()
         {
             throw new System.NotImplementedException();
