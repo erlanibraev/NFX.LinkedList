@@ -88,7 +88,14 @@ namespace NFX.Utils
 
         private T find(string key)
         {
-            char[] keys = key.ToCharArray();
+            PilePointer currentPP = findPP(key);
+            PrefixTreeNode current = (PrefixTreeNode)m_Pile.Get(currentPP);
+            return current.ValuePP != PilePointer.Invalid ? (T) m_Pile.Get(current.ValuePP) : default(T);
+        }
+
+        private PilePointer findPP(string Key)
+        {
+            char[] keys = Key.ToCharArray();
             string strKey = "";
             PilePointer currentPP = m_Root;
             PrefixTreeNode current = (PrefixTreeNode)m_Pile.Get(currentPP);
@@ -96,17 +103,15 @@ namespace NFX.Utils
             {
                 strKey += charKey;
                 int i = 0;
-                for(i=0; i< current.Children.Length; i++)
+                for (i = 0; i < current.Children.Length; i++)
                 {
                     if (current.Children[i].Key >= charKey) break;
                 }
-                if (i >= current.Children.Length)
-                {
-                    break;
-                }
-                current = (PrefixTreeNode) m_Pile.Get(current.Children[i].ValuePP);
+                if (i >= current.Children.Length) break;
+                currentPP = current.Children[i].ValuePP;
+                current = (PrefixTreeNode)m_Pile.Get(currentPP);
             }
-            return strKey == key && current.ValuePP != PilePointer.Invalid ? (T) m_Pile.Get(current.ValuePP) : default(T);
+            return strKey == Key ? currentPP : PilePointer.Invalid;
         }
 
         private void setValue(string key, T value)
