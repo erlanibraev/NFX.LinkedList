@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using NFX.ApplicationModel.Pile;
 using NUnit.Framework;
 
@@ -128,7 +129,8 @@ namespace NFX.Utils
                 {
                     test["a--{0}".Args(i)] = i;
                 }
-                foreach (var key in test.Keys)
+                var keys = new List<string>(test.Keys);
+                foreach (var key in keys)
                 {
                     Console.WriteLine(key);
                 }
@@ -136,7 +138,7 @@ namespace NFX.Utils
                 for (int i = 0; i < 25; i++)
                 {
                     Console.WriteLine("a--{0}".Args(i));
-                    Aver.IsTrue(test.Keys.Contains("a--{0}".Args(i)));
+                    Aver.IsTrue(keys.Contains("a--{0}".Args(i)));
                 }
             }
         }

@@ -4,6 +4,7 @@ using NFX.ApplicationModel.Pile;
 using NFX.ServiceModel;
 using System.Linq;
 using System;
+using NFX.IO.Net.Gate;
 
 namespace NFX.Utils
 {
@@ -24,8 +25,8 @@ namespace NFX.Utils
 
         #region Fields
 
-        private IPile m_Pile;
-        private PilePointer m_Root;
+        internal IPile m_Pile;
+        internal PilePointer m_Root;
 
         #endregion
 
@@ -40,7 +41,7 @@ namespace NFX.Utils
             set { setValue(key, value); }
         }
         
-        public ICollection<string> Keys { get { return makeKeys(); }}
+        public IEnumerable<string> Keys { get { return makeKeys(); }}
 
         #endregion
 
@@ -170,11 +171,7 @@ namespace NFX.Utils
                         else
                         {
                             Entry entry = new Entry() { Key = charKey, ValuePP = m_Pile.Put(tmp) };
-                            Entry[] newArray = new Entry[current.Children.Length + 1];
-                            Array.Copy(current.Children, 0, newArray, 0, i);
-                            newArray[i] = entry;
-                            Array.Copy(current.Children, i, newArray, i+1, current.Children.Length - i);
-                            current.Children = newArray;
+                            current.Children = insertEntry(i, current.Children, entry);
                             m_Pile.Put(currentPP, current);
                         }
                     } 
@@ -205,6 +202,15 @@ namespace NFX.Utils
             }
         }
 
+        private Entry[] insertEntry(int i, Entry[] Children, Entry entry)
+        {
+            Entry[] newArray = new Entry[Children.Length + 1];
+            Array.Copy(Children, 0, newArray, 0, i);
+            newArray[i] = entry;
+            Array.Copy(Children, i, newArray, i+1, Children.Length - i);
+            return newArray;
+        }
+
         private void clearAll()
         {
             var stack = new List<PilePointer> {m_Root};
@@ -225,25 +231,16 @@ namespace NFX.Utils
             }                    
         }
 
-        private ICollection<string> makeKeys()
+        private IEnumerable<string> makeKeys()
         {
-            throw new System.NotImplementedException();
+            return new Keys(m_Root, m_Pile);
         }
 
         #endregion
 
-        internal struct PrefixTreeNode
-        {
-            internal PilePointer ValuePP;
-            internal Entry[] Children;
 
-        }
 
-        internal struct Entry
-        {
-            internal char Key;
-            internal PilePointer ValuePP;
-        }
+
     }
 
     internal class PrefixTreeEnumerator<T> : IEnumerator<T>
@@ -283,6 +280,126 @@ namespace NFX.Utils
         object IEnumerator.Current
         {
             get { return Current; }
+        }
+    }
+    
+    internal struct Entry
+    {
+        internal char Key;
+        internal PilePointer ValuePP;
+    }
+    
+    internal struct PrefixTreeNode
+    {
+        internal PilePointer ValuePP;
+        internal Entry[] Children;
+
+    }
+    
+    internal class Keys : IEnumerable<string>
+    {
+        public Keys(PilePointer root, IPile pile)
+        {
+            m_Root = root;
+            m_Pile = pile;
+        }
+
+        private PilePointer m_Root;
+        private IPile m_Pile;
+
+        public IEnumerator<string> GetEnumerator()
+        {
+            return new Keys.KeysEnumenator(m_Root, m_Pile);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        internal class KeysEnumenator : IEnumerator<string>
+        {
+
+            public KeysEnumenator(PilePointer root, IPile pile)
+            {
+                m_Root = root;
+                m_Pile = pile;
+                Reset();
+            }
+            
+            private PilePointer m_Root;
+            private IPile m_Pile;
+            private List<KeyValuePair<string, PilePointer>> stack;
+            private int i;
+            private PrefixTreeNode currentNode;
+            private string strKey;
+
+            private string currentKey;
+
+            public void Dispose()
+            {
+                // throw new NotImplementedException();
+            }
+
+            public bool MoveNext()
+            {
+                currentKey = "";
+                while (stack.Any())
+                {
+                    if(i < 0) {
+                        var currentPP = stack[0].Value;
+                        strKey = stack[0].Key;
+                        stack.RemoveAt(0);
+                        currentNode = (PrefixTreeNode) m_Pile.Get(currentPP);
+                        for (int j = 0; j < currentNode.Children.Length; j++)
+                        {
+                            if(currentNode.Children[j].ValuePP != PilePointer.Invalid) 
+                                stack.Add(new KeyValuePair<string, PilePointer>(strKey + currentNode.Children[j].Key, (currentNode.Children[j].ValuePP)));
+                        }
+                        i = 0;
+                    }
+                    var find = false;
+                    while (i < currentNode.Children.Length)
+                    {
+                        Entry entry = currentNode.Children[i];
+                        i++;
+                        if (entry.ValuePP != PilePointer.Invalid)
+                        {
+                            PrefixTreeNode node = (PrefixTreeNode) m_Pile.Get(entry.ValuePP);
+                            if (node.ValuePP != PilePointer.Invalid)
+                            {
+                                currentKey = strKey + entry.Key;
+                                find = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (find) break;
+                    i = -1;
+                }
+                
+                return !currentKey.IsNullOrEmpty();
+            }
+
+            public void Reset()
+            {
+                stack = new List<KeyValuePair<string, PilePointer>>() {new KeyValuePair<string, PilePointer>("", m_Root)};
+                i = -1;
+            }
+
+            public string Current
+            {
+                get
+                {
+                    return currentKey; 
+                    
+                }
+            }
+
+            object IEnumerator.Current
+            {
+                get { return Current; }
+            }
         }
     }
 }
