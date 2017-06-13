@@ -71,6 +71,25 @@ namespace NFX.Utils
         }
 
         [Test]
+        public void SimpleOrdinalSetTest()
+        {
+            using (var test = new PrefixTree<int>(m_Pile))
+            {
+                for (int i = 9; i >= 0; i--)
+                {
+                    test["{0}".Args(i)] = i;
+                }
+                for(int i=0; i< 10; i++)
+                {
+                    Console.Write("{0}".Args(i));
+                    Console.Write(" = ");
+                    Console.WriteLine(test["{0}".Args(i)]);
+                    Aver.AreEqual(test["{0}".Args(i)], i);
+                }
+            }
+        }
+
+        [Test]
         public void SimpleRemoveTest()
         {
             using (var test = new PrefixTree<int>(m_Pile))

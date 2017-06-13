@@ -98,10 +98,7 @@ namespace NFX.Utils
                 int i = 0;
                 for(i=0; i< current.Children.Length; i++)
                 {
-                    if (current.Children[i].Key == charKey)
-                    {
-                        break;
-                    }
+                    if (current.Children[i].Key >= charKey) break;
                 }
                 if (i >= current.Children.Length)
                 {
