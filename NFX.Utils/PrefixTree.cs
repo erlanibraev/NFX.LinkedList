@@ -48,68 +48,7 @@ namespace NFX.Utils
 
         public bool Remove(string key)
         { 
-            /*
-            bool result = false;
-            char[] keys = key.ToCharArray();
-            PrefixTreeNode current = (PrefixTreeNode) m_Pile.Get(m_Root);
-            string strKey = "";
-            foreach (var charKey in keys)
-            {
-                strKey += charKey;
-                var node = current.Children != PilePointer.Invalid ? new LinkedListNode<PrefixTreeNode>(m_Pile, current.Children, null) : null;
-                bool contains = false;
-                while (node != null)
-                {
-                    if (m_Comparer.Equals(node.Value.Key, strKey))
-                    {
-                        contains = true;
-                        break;
-                    }
-                    node = node.Next;
-                }
-                if (contains)
-                {
-                    current = node.Value;
-                    if (m_Comparer.Equals(current.Key, key) )
-                    {
-                        if (current.Value != PilePointer.Invalid)
-                        {
-                            m_Pile.Delete(current.Value);
-                            current.Value = PilePointer.Invalid;
-                            if (current.Children == PilePointer.Invalid)
-                            {
-                                m_Pile.Delete(current.Self);
-                                var prev = node.Previous;
-                                var next = node.Next;
-                                if (prev != null)
-                                {
-                                    prev.Node.NextPP = next != null ? next.Node.SelfPP : PilePointer.Invalid;
-                                    m_Pile.Put(prev.Node.SelfPP, prev.Node);
-                                }
-
-                                if (next != null)
-                                {
-                                    next.Node.PreviousPP = prev != null ? prev.Node.SelfPP : PilePointer.Invalid;
-                                    m_Pile.Put(next.Node.SelfPP, next.Node);
-                                }
-                                m_Pile.Delete(node.Node.SelfPP);
-                            }
-                            else
-                            {
-                                m_Pile.Put(current.Self, current);
-                            }
-                            result = true;
-                        }
-                        break;
-                    }
-                }
-                else
-                {
-                    break;
-                }
-            }
-            return result;
-            */
+           
             throw new System.NotImplementedException();
         }
 
@@ -138,33 +77,39 @@ namespace NFX.Utils
 
         #region .pvt
 
+        private PrefixTreeNode newPrefixTreeNode()
+        {
+            return new PrefixTreeNode()
+            {
+                ValuePP = PilePointer.Invalid,
+                Children = Enumerable.Repeat<Entry>(new Entry() { Key = '\0', ValuePP = PilePointer.Invalid }, SIZE).ToArray<Entry>()
+            };
+        }
+
         private T find(string key)
         {
             char[] keys = key.ToCharArray();
             string strKey = "";
-            PrefixTreeNode current = (PrefixTreeNode) m_Pile.Get(m_Root);
-            bool contains = false;
-            foreach(char charKey in keys)
+            PilePointer currentPP = m_Root;
+            PrefixTreeNode current = (PrefixTreeNode)m_Pile.Get(currentPP);
+            foreach (char charKey in keys)
             {
                 strKey += charKey;
                 int i = 0;
-                contains = false;
-                for(i = 0; i < current.Children.Length; i++)
+                for(i=0; i< current.Children.Length; i++)
                 {
-                    if (current.Children[i].Key > charKey) break;
                     if (current.Children[i].Key == charKey)
                     {
-                        contains = true;
                         break;
                     }
                 }
-                if (!contains || i >= current.Children.Length)
+                if (i >= current.Children.Length)
                 {
                     break;
                 }
                 current = (PrefixTreeNode) m_Pile.Get(current.Children[i].ValuePP);
             }
-            return contains && current.ValuePP != PilePointer.Invalid ? (T) m_Pile.Get(current.ValuePP) : default(T);
+            return strKey == key && current.ValuePP != PilePointer.Invalid ? (T) m_Pile.Get(current.ValuePP) : default(T);
         }
 
         private void setValue(string key, T value)
@@ -235,16 +180,6 @@ namespace NFX.Utils
             }
         }
 
-        private PrefixTreeNode newPrefixTreeNode()
-        {
-            PrefixTreeNode result = new PrefixTreeNode()
-            {
-                ValuePP = PilePointer.Invalid,
-                Children = Enumerable.Repeat(new Entry() { Key='\0', ValuePP = PilePointer.Invalid}, SIZE).ToArray()
-            };
-            return result;
-        }
-
         private void clearAll()
         {
             // todo Алгоритм рекурсивный. Надо подумать, как его сделать не рекурсивным...
@@ -255,19 +190,6 @@ namespace NFX.Utils
         private void clearItem(PilePointer itemPP)
         {
             throw new System.NotImplementedException();
-            /*
-            if (itemPP == PilePointer.Invalid) return;
-            PrefixTreeNode item = (PrefixTreeNode) m_Pile.Get(itemPP);
-            NodeData node = (NodeData) (item.Children != PilePointer.Invalid ? m_Pile.Get(item.Children) : null);
-            while(node != null)
-            {
-                clearItem(node.ValuePP);
-                m_Pile.Delete(node.SelfPP);
-                node = node.NextPP != PilePointer.Invalid ? (NodeData) m_Pile.Get(node.NextPP) : null;
-            }
-            if (item.Value != PilePointer.Invalid) m_Pile.Delete(item.Value);
-            m_Pile.Delete(item.Self);
-            */
         }
         
         private ICollection<string> makeKeys()
