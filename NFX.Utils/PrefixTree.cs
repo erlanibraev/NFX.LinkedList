@@ -2,37 +2,30 @@ using System.Collections;
 using System.Collections.Generic;
 using NFX.ApplicationModel.Pile;
 using NFX.ServiceModel;
+using System.Linq;
+using System;
 
 namespace NFX.Utils
 {
     public class PrefixTree<T>: DisposableObject, IEnumerable<T>
     {
+        public static readonly int SIZE = 10;
+
         #region .ctor
 
         public PrefixTree(IPile pile)
         {
             m_Pile = pile;
-            m_Comparer = EqualityComparer<string>.Default;
-            m_Root = newPrefixTreeNode(PilePointer.Invalid, "").Self;
-            m_Keys = null;
+            var tmp = newPrefixTreeNode();
+            m_Root = m_Pile.Put(tmp);
         }
         
-        public PrefixTree(IPile pile, IEqualityComparer<string> comparer)
-        {
-            m_Pile = pile;
-            m_Comparer = comparer;
-            m_Root = newPrefixTreeNode(PilePointer.Invalid, "").Self;
-            m_Keys = null;
-        }
-
         #endregion
 
         #region Fields
 
         private IPile m_Pile;
-        private IEqualityComparer<string> m_Comparer;
         private PilePointer m_Root;
-        private LinkedList<string> m_Keys;
 
         #endregion
 
@@ -47,14 +40,15 @@ namespace NFX.Utils
             set { setValue(key, value); }
         }
         
-        public LinkedList<string> Keys { get { return makeKeys(); }}
+        public ICollection<string> Keys { get { return makeKeys(); }}
 
         #endregion
 
         #region Public
 
         public bool Remove(string key)
-        {
+        { 
+            /*
             bool result = false;
             char[] keys = key.ToCharArray();
             PrefixTreeNode current = (PrefixTreeNode) m_Pile.Get(m_Root);
@@ -115,152 +109,154 @@ namespace NFX.Utils
                 }
             }
             return result;
+            */
+            throw new System.NotImplementedException();
         }
 
         public IEnumerator<T> GetEnumerator()
         {
-            return new PrefixTreeEnumerator<T>(this);
+            throw new System.NotImplementedException();
+            // return new PrefixTreeEnumerator<T>(this);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
+            throw new System.NotImplementedException();
+            // return GetEnumerator();
         }
         #endregion
 
         #region Protected
-
+        protected override void Destructor()
+        {
+            return; // todo Сделать!!!!
+            var test = m_Pile as DefaultPile;
+            if (test != null && test.Status == ControlStatus.Active) clearAll();
+            base.Destructor();
+        }
         #endregion
-        
+
         #region .pvt
 
         private T find(string key)
         {
             char[] keys = key.ToCharArray();
-            PrefixTreeNode current = (PrefixTreeNode) m_Pile.Get(m_Root);
-            PilePointer ppResult = PilePointer.Invalid;
             string strKey = "";
-            foreach (var charKey in keys)
+            PrefixTreeNode current = (PrefixTreeNode) m_Pile.Get(m_Root);
+            bool contains = false;
+            foreach(char charKey in keys)
             {
                 strKey += charKey;
-                var node = current.Children != PilePointer.Invalid ? new LinkedListNode<PrefixTreeNode>(m_Pile, current.Children, null) : null;
-                bool contains = false;
-                while (node != null)
+                int i = 0;
+                contains = false;
+                for(i = 0; i < current.Children.Length; i++)
                 {
-                    if (m_Comparer.Equals(node.Value.Key, strKey))
+                    if (current.Children[i].Key > charKey) break;
+                    if (current.Children[i].Key == charKey)
                     {
                         contains = true;
                         break;
                     }
-                    node = node.Next;
                 }
-                if (contains)
-                {
-                    current = node.Value;
-                    if (current.Key == key)
-                    {
-                        if (current.Value != PilePointer.Invalid)
-                        {
-                            ppResult = current.Value;    
-                        }
-                        break;
-                    }
-                }
-                else
+                if (!contains || i >= current.Children.Length)
                 {
                     break;
                 }
-                
+                current = (PrefixTreeNode) m_Pile.Get(current.Children[i].ValuePP);
             }
-            return ppResult != PilePointer.Invalid ? (T) m_Pile.Get(ppResult) : default(T);
+            return contains && current.ValuePP != PilePointer.Invalid ? (T) m_Pile.Get(current.ValuePP) : default(T);
         }
 
         private void setValue(string key, T value)
         {
             char[] keys = key.ToCharArray();
-            PrefixTreeNode current = (PrefixTreeNode) m_Pile.Get(m_Root);
             string strKey = "";
+            PilePointer currentPP = m_Root;
+            PrefixTreeNode current = (PrefixTreeNode)m_Pile.Get(currentPP);
+            bool contains = false;
             foreach(char charKey in keys)
             {
                 strKey += charKey;
-                var node = current.Children != PilePointer.Invalid ? new LinkedListNode<PrefixTreeNode>(m_Pile, current.Children, null) : null;
-                bool contains = false;
-                LinkedListNode<PrefixTreeNode> prev = null;
-                while (node != null)
+                int i = 0;
+                contains = false;
+                for(i = 0; i < current.Children.Length; i ++)
                 {
-                    if (m_Comparer.Equals(node.Value.Key, strKey))
+                    if (current.Children[i].Key > charKey || current.Children[i].ValuePP == PilePointer.Invalid) break;
+                    if(current.Children[i].Key == charKey)
                     {
                         contains = true;
                         break;
                     }
-                    prev = node;
-                    node = node.Next;
                 }
-                
-                if (!contains)
+                if(!contains)
                 {
-                    PrefixTreeNode child = newPrefixTreeNode(current.Self, strKey);
-                    node = new LinkedListNode<PrefixTreeNode>(m_Pile);
-                    node.Node.ValuePP = child.Self;
-                    if (prev != null)
+                    var tmp = newPrefixTreeNode();
+                    if (i < current.Children.Length)
                     {
-                        node.Node.PreviousPP = prev.Node.SelfPP;
-                        prev.Node.NextPP = node.Node.SelfPP;
-                        m_Pile.Put(prev.Node.SelfPP, prev.Node);
-                    }
+                        if(current.Children[i].ValuePP == PilePointer.Invalid)
+                        {
+                            current.Children[i].Key = charKey;
+                            current.Children[i].ValuePP = m_Pile.Put(tmp);
+                            m_Pile.Put(currentPP, current);
+                        }
+                        else
+                        {
+                            List<Entry> tmpList = current.Children.ToList<Entry>();
+                            Entry entry = new Entry() { Key = charKey, ValuePP = m_Pile.Put(tmp) };
+                            tmpList.Insert(i, entry);
+                            current.Children = tmpList.ToArray<Entry>();
+                            m_Pile.Put(currentPP, current);
+                        }
+                    } 
                     else
                     {
-                        current.Children = node.Node.SelfPP;
+                        Array.Resize(ref current.Children, i + SIZE);
+                        for(var j = i; j < current.Children.Length; j++)
+                        {
+                            current.Children[j].Key = '\0';
+                            current.Children[j].ValuePP = PilePointer.Invalid;
+                        }
+                        current.Children[i].Key = charKey;
+                        current.Children[i].ValuePP = m_Pile.Put(tmp);
+                        m_Pile.Put(currentPP, current);
                     }
-                    
-                    m_Pile.Put(node.Node.SelfPP, node.Node);
-                    m_Pile.Put(current.Self, current);
                 }
-                current = node.Value;
+                currentPP = current.Children[i].ValuePP;
+                current = (PrefixTreeNode) m_Pile.Get(currentPP);
             }
-            if (current.Value != PilePointer.Invalid)
+            if (current.ValuePP != PilePointer.Invalid)
             {
-                m_Pile.Put(current.Value, value);
+                m_Pile.Put(current.ValuePP, value);
             }
             else
             {
-                current.Value = m_Pile.Put(value);
+                current.ValuePP = m_Pile.Put(value);
+                m_Pile.Put(currentPP, current);
             }
-            m_Pile.Put(current.Self, current);
         }
 
-        private PrefixTreeNode newPrefixTreeNode(PilePointer parent, string key)
+        private PrefixTreeNode newPrefixTreeNode()
         {
             PrefixTreeNode result = new PrefixTreeNode()
             {
-                Self = PilePointer.Invalid,
-                Value = PilePointer.Invalid,
-                Parent = parent,
-                Children = PilePointer.Invalid,
-                Key = key
+                ValuePP = PilePointer.Invalid,
+                Children = Enumerable.Repeat(new Entry() { Key='\0', ValuePP = PilePointer.Invalid}, SIZE).ToArray()
             };
-            result.Self = m_Pile.Put(result);
-            m_Pile.Put(result.Self, result);
             return result;
-        }
-
-        protected override void Destructor()
-        {
-            var test = m_Pile as DefaultPile;
-            if(test != null && test.Status == ControlStatus.Active) clearAll();
-            base.Destructor();
         }
 
         private void clearAll()
         {
             // todo Алгоритм рекурсивный. Надо подумать, как его сделать не рекурсивным...
-            if(m_Keys != null) m_Keys.Clear();
+            throw new System.NotImplementedException();
             clearItem(m_Root);        
         }
 
         private void clearItem(PilePointer itemPP)
         {
-            if(itemPP == PilePointer.Invalid) return;
+            throw new System.NotImplementedException();
+            /*
+            if (itemPP == PilePointer.Invalid) return;
             PrefixTreeNode item = (PrefixTreeNode) m_Pile.Get(itemPP);
             NodeData node = (NodeData) (item.Children != PilePointer.Invalid ? m_Pile.Get(item.Children) : null);
             while(node != null)
@@ -271,45 +267,27 @@ namespace NFX.Utils
             }
             if (item.Value != PilePointer.Invalid) m_Pile.Delete(item.Value);
             m_Pile.Delete(item.Self);
+            */
         }
         
-        private LinkedList<string> makeKeys()
+        private ICollection<string> makeKeys()
         {
-            if(m_Keys != null) m_Keys.Clear();
-            LinkedList<string> result = new LinkedList<string>(m_Pile);
-            var stack = new List<PrefixTreeNode>();
-            stack.Add((PrefixTreeNode) m_Pile.Get(m_Root));
-            while (stack.Count > 0)
-            {
-                var current = stack[0];
-                stack.RemoveAt(0);
-                var node = current.Children != PilePointer.Invalid ? new LinkedListNode<PrefixTreeNode>(m_Pile, current.Children, null) : null;
-                while(node != null)
-                {
-                    PrefixTreeNode child = (PrefixTreeNode) m_Pile.Get(node.Value.Self);
-                    stack.Add(child);
-                    if(child.Value != PilePointer.Invalid) result.AddLast(node.Value.Key);
-                    node = node.Next;
-                }                
-            }
-            m_Keys = result;
-            return result;
+            throw new System.NotImplementedException();
         }
 
         #endregion
 
         internal struct PrefixTreeNode
         {
-            internal PilePointer Self;
-            internal PilePointer Value;
-            internal string Key;
-            internal PilePointer Parent;
-            internal PilePointer Children;
+            internal PilePointer ValuePP;
+            internal Entry[] Children;
 
-            public override string ToString()
-            {
-                return "self = {0}; value = {1}; key = {2}; parent={3}; Children = {4}".Args(Self.ToString(), Value.ToString(), Key, Parent.ToString(), Children != null ? Children.ToString() : "");
-            }
+        }
+
+        internal struct Entry
+        {
+            internal char Key;
+            internal PilePointer ValuePP;
         }
     }
 
@@ -319,46 +297,31 @@ namespace NFX.Utils
         public PrefixTreeEnumerator(PrefixTree<T> prefixTree)
         {
             m_PrefixTree = prefixTree;
-            m_Keys = prefixTree.Keys;
-            m_Current = m_Keys.First;
             first = true;
         }
 
         private PrefixTree<T> m_PrefixTree;
-        private LinkedList<string> m_Keys;
-        private LinkedListNode<string> m_Current;
         private bool first;
 
         public void Dispose()
         {
-            m_Keys.Clear();
-            m_Keys = null;
         }
 
         public bool MoveNext()
         {
-            if (!first)
-            {
-                m_Current = m_Current.Next;
-            }
-            else
-            {
-                first = false;
-            }
-            return m_Current != null;
+            throw new System.NotImplementedException();
         }
 
         public void Reset()
         {
-            m_Current = m_Keys.First;
-            first = true;
+            throw new System.NotImplementedException();
         }
 
         public T Current
         {
             get
             {
-                return m_Current != null ? m_PrefixTree[m_Current.Value] : default(T);
+                throw new System.NotImplementedException();
             }
         }
 
