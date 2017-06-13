@@ -214,7 +214,7 @@ namespace NFX.Utils
 */
         }
 
-        [TestCase(1000000)]
+        [TestCase(10000)]
         public void SimpleMassivTest(int count)
         {
             using (var test = new PrefixTree<int>(m_Pile))
@@ -234,8 +234,8 @@ namespace NFX.Utils
                 }
                 Console.WriteLine(DateTime.Now);
                 Console.WriteLine(m_Pile.ObjectCount);
-/*                Console.WriteLine(DateTime.Now);
-                LinkedList<string> keys = test.Keys;
+                Console.WriteLine(DateTime.Now);
+                List<string> keys = new List<string>(test.Keys);
                 Console.WriteLine(keys.Count);
                 Console.WriteLine(DateTime.Now);
                 
@@ -246,7 +246,7 @@ namespace NFX.Utils
                 }
                 Console.WriteLine();
                 Console.WriteLine(DateTime.Now);
-                Console.WriteLine(keys.Find(lastKey).Value);*/
+                Console.WriteLine(keys.Find(s => s == lastKey));
                 Console.WriteLine(DateTime.Now);
                 Console.WriteLine(test[lastKey]);
                 Console.WriteLine(DateTime.Now);
