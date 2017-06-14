@@ -215,6 +215,9 @@ namespace NFX.Utils
         }
 
         [TestCase(10000)]
+        [TestCase(100000)]
+        [TestCase(1000000)]
+        [TestCase(10000000)]
         public void SimpleMassivTest(int count)
         {
             using (var test = new PrefixTree<int>(m_Pile))
@@ -232,7 +235,8 @@ namespace NFX.Utils
                     lastKey = key;
                     if(i == count -1 ) Console.WriteLine("\t"+(DateTime.Now.Millisecond - m).ToString()); 
                 }
-                Console.WriteLine(DateTime.Now);
+                
+/*                Console.WriteLine(DateTime.Now);
                 Console.WriteLine(m_Pile.ObjectCount);
                 Console.WriteLine(DateTime.Now);
                 List<string> keys = new List<string>(test.Keys);
@@ -246,12 +250,35 @@ namespace NFX.Utils
                 }
                 Console.WriteLine();
                 Console.WriteLine(DateTime.Now);
-                Console.WriteLine(keys.Find(s => s == lastKey));
+                Console.WriteLine(keys.Find(s => s == lastKey));*/
                 Console.WriteLine(DateTime.Now);
                 Console.WriteLine(test[lastKey]);
                 Console.WriteLine(DateTime.Now);
             }
             Console.WriteLine(m_Pile.ObjectCount);
+            Console.WriteLine(DateTime.Now);
+        }
+
+        [TestCase(1000000)]
+        public void SimpleMassivTestWithoutDestry(int count)
+        {
+            var test = new PrefixTree<int>(m_Pile);
+            String lastKey = "";
+            Console.WriteLine(DateTime.Now);
+            for (int i = 0; i < count; i++)
+            {
+                int m = 0;
+                if(i == count -1 ) m = DateTime.Now.Millisecond; 
+                string key = Guid.NewGuid().ToString();
+                // key = "TEST KEY {0}".Args(i);
+                key = key.Substring(0, 3)+" "+i.ToString();
+                test[key] = i;
+                lastKey = key;
+                if(i == count -1 ) Console.WriteLine("\t"+(DateTime.Now.Millisecond - m).ToString()); 
+
+            }
+            Console.WriteLine(DateTime.Now);
+            Console.WriteLine(test[lastKey]);
             Console.WriteLine(DateTime.Now);
         }
     }
