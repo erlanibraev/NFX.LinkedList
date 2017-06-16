@@ -11,7 +11,7 @@ namespace NFX.Utils
     {
         #region CONSTS
 
-        public static readonly int SIZE = 2;
+        public static readonly int SIZE = 20;
         
         #endregion
         #region .ctor
@@ -51,7 +51,7 @@ namespace NFX.Utils
             set { setValue(key, value); }
         }
         
-        public IEnumerable<string> Keys { get { return makeKeys(); }}
+        public IEnumerable<string> Keys { get { return getKeys(); }}
         
         public int Count {get { return GetCount(); }}
 
@@ -63,11 +63,11 @@ namespace NFX.Utils
         {
             bool result = false;
             PilePointer currentPP = findPP(key);
-            if (currentPP != PilePointer.Invalid)
+            if (currentPP != default(PilePointer))
             {
                 PrefixTreeNode current = (PrefixTreeNode) m_Pile.Get(currentPP);
                 m_Pile.Delete(current.ValuePP);
-                current.ValuePP = PilePointer.Invalid;
+                current.ValuePP = default(PilePointer);
                 m_Pile.Put(currentPP, current);
                 m_Count--;
             }
@@ -75,28 +75,28 @@ namespace NFX.Utils
             return result;
         }
 
-        public KeyValuePair<string, T>[] getKeyValuePairs()
+        public IEnumerable<KeyValuePair<string, T>> getKeyValuePairs()
         {
-            KeyValuePair<string, T>[] result = new KeyValuePair<string, T>[Count];
-            var i = 0;
-            getNextValuePairs(ref result, m_Root, i, "");
-            return result;
+            return getNextValuePairs( m_Root, "");;
         }
         
-        private void getNextValuePairs(ref KeyValuePair<string, T>[] result, PilePointer pp, int i, string strKey)
+        private IEnumerable<KeyValuePair<string, T>> getNextValuePairs(PilePointer pp, string strKey)
         {
-            if (pp == PilePointer.Invalid) return;
+            if (pp == default(PilePointer)) yield break;
             var current = (PrefixTreeNode) m_Pile.Get(pp);
-            if (current.ValuePP != PilePointer.Invalid) result[i++] = new KeyValuePair<string, T>(strKey, (T)m_Pile.Get(current.ValuePP));
+            if (current.ValuePP != default(PilePointer)) yield return new KeyValuePair<string, T>(strKey, (T)m_Pile.Get(current.ValuePP));
             foreach(Entry entry in current.Children)
             {
-                if (entry.ValuePP != PilePointer.Invalid)
+                if (entry.ValuePP != default(PilePointer))
                 {
-                    getNextValuePairs(ref result, entry.ValuePP, i, strKey + entry.Key);
+                    foreach (var nextValuePair in getNextValuePairs(entry.ValuePP, strKey + entry.Key))
+                    {
+                        yield return nextValuePair;
+                    }
                 }
                 else
                 {
-                    break;
+                    yield break;
                 }
             }
         }
@@ -124,8 +124,8 @@ namespace NFX.Utils
         {
             return new PrefixTreeNode()
             {
-                ValuePP = PilePointer.Invalid,
-                Children = Enumerable.Repeat<Entry>(new Entry() { Key = '\0', ValuePP = PilePointer.Invalid }, SIZE).ToArray<Entry>()
+                ValuePP = default(PilePointer),
+                Children = Enumerable.Repeat<Entry>(new Entry(), SIZE).ToArray<Entry>()
             };
         }
 
@@ -133,10 +133,10 @@ namespace NFX.Utils
         {
             T result = default(T);
             PilePointer currentPP = findPP(key);
-            if (currentPP != PilePointer.Invalid)
+            if (currentPP != default(PilePointer))
             {
                 PrefixTreeNode current = (PrefixTreeNode)m_Pile.Get(currentPP);
-                result = current.ValuePP != PilePointer.Invalid ? (T) m_Pile.Get(current.ValuePP) : default(T); 
+                result = current.ValuePP != default(PilePointer) ? (T) m_Pile.Get(current.ValuePP) : default(T); 
             }
             return result;
         }
@@ -166,7 +166,7 @@ namespace NFX.Utils
                 currentPP = current.Children[i].ValuePP;
                 current = (PrefixTreeNode)m_Pile.Get(currentPP);
             }
-            return contains ? currentPP : PilePointer.Invalid;
+            return contains ? currentPP : default(PilePointer);
         }
 
         private void setValue(string key, T value)
@@ -183,7 +183,7 @@ namespace NFX.Utils
                 contains = false;
                 for(i = 0; i < current.Children.Length; i++)
                 {
-                    if (current.Children[i].Key > charKey || current.Children[i].ValuePP == PilePointer.Invalid) break;
+                    if (current.Children[i].Key > charKey || current.Children[i].ValuePP == default(PilePointer)) break;
                     if (current.Children[i].Key == charKey)
                     {
                         contains = true;
@@ -195,7 +195,7 @@ namespace NFX.Utils
                     var tmp = newPrefixTreeNode();
                     if (i < current.Children.Length)
                     {
-                        if(current.Children[i].ValuePP == PilePointer.Invalid)
+                        if(current.Children[i].ValuePP == default(PilePointer))
                         {
                             current.Children[i].Key = charKey;
                             current.Children[i].ValuePP = m_Pile.Put(tmp);
@@ -204,27 +204,21 @@ namespace NFX.Utils
                         else
                         {
                             Entry entry = new Entry() { Key = charKey, ValuePP = m_Pile.Put(tmp) };
-                            current.Children = insertEntry(i, current.Children, entry);
+                            insertEntry(i, ref current.Children, entry);
                             m_Pile.Put(currentPP, current);
                         }
                     } 
                     else
                     {
-                        Array.Resize(ref current.Children, i + SIZE);
-                        for(var j = i; j < current.Children.Length; j++)
-                        {
-                            current.Children[j].Key = '\0';
-                            current.Children[j].ValuePP = PilePointer.Invalid;
-                        }
-                        current.Children[i].Key = charKey;
-                        current.Children[i].ValuePP = m_Pile.Put(tmp);
+                        Entry entry = new Entry() { Key = charKey, ValuePP = m_Pile.Put(tmp) };
+                        insertEntry(i, ref current.Children, entry);
                         m_Pile.Put(currentPP, current);
                     }
                 }
                 currentPP = current.Children[i].ValuePP;
                 current = (PrefixTreeNode) m_Pile.Get(currentPP);
             }
-            if (current.ValuePP != PilePointer.Invalid)
+            if (current.ValuePP != default(PilePointer))
             {
                 m_Pile.Put(current.ValuePP, value);
             }
@@ -236,39 +230,39 @@ namespace NFX.Utils
             }
         }
 
-        private Entry[] insertEntry(int i, Entry[] Children, Entry entry)
+        private void insertEntry(int i, ref Entry[] Children, Entry entry)
         {
-            Entry[] newArray = new Entry[Children.Length + 1];
-            Array.Copy(Children, 0, newArray, 0, i);
-            newArray[i] = entry;
-            Array.Copy(Children, i, newArray, i+1, Children.Length - i);
-            return newArray;
+            int start = Children.Length - 1;
+            if (Children[start].ValuePP != default(PilePointer))
+            {
+                Array.Resize(ref Children, Children.Length + SIZE);
+            }
+            for(int j = start; i < j; j--)
+            {
+                Children[j] = Children[j - 1];
+            }
+            Children[i] = entry;
         }
 
         private void clearAll()
         {
             clearItem(m_Root);
-            m_Root = PilePointer.Invalid;
+            m_Root = default(PilePointer);
         }
 
         private void clearItem(PilePointer pp)
         {
-            if (pp == PilePointer.Invalid) return;
+            if (pp == default(PilePointer)) return;
             PrefixTreeNode current = (PrefixTreeNode)m_Pile.Get(pp);
             foreach(Entry entry in current.Children)
             {
-                if (entry.ValuePP != PilePointer.Invalid)
+                if (entry.ValuePP != default(PilePointer))
                 {
                     clearItem(entry.ValuePP);
                 }
             }
-            if (current.ValuePP != PilePointer.Invalid) m_Pile.Delete(current.ValuePP);
+            if (current.ValuePP != default(PilePointer)) m_Pile.Delete(current.ValuePP);
             m_Pile.Delete(pp);
-        }
-
-        private IEnumerable<string> makeKeys()
-        {
-            return new Keys(m_Root, m_Pile);
         }
 
         private int GetCount()
@@ -276,10 +270,33 @@ namespace NFX.Utils
             return m_Count;
         }
 
+        private string[] getKeys()
+        {
+            string[] result = new string[m_Count];
+            var i = 0;
+            getNextKey(ref result, m_Root, ref i, "");
+            return result;
+        }
+
+        private void getNextKey(ref string[] result, PilePointer pp, ref int i, string strKey)
+        {
+            if (pp == default(PilePointer)) return;
+            var current = (PrefixTreeNode)m_Pile.Get(pp);
+            if (current.ValuePP != default(PilePointer)) result[i++] = strKey;
+            foreach (Entry entry in current.Children)
+            {
+                if (entry.ValuePP != default(PilePointer))
+                {
+                    getNextKey(ref result, entry.ValuePP, ref i, strKey + entry.Key);
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
         #endregion
-
-
-
 
     }
 
@@ -322,124 +339,18 @@ namespace NFX.Utils
             get { return Current; }
         }
     }
-    
+
     internal struct Entry
     {
         internal char Key;
         internal PilePointer ValuePP;
     }
-    
+
     internal struct PrefixTreeNode
     {
         internal PilePointer ValuePP;
         internal Entry[] Children;
-
     }
-    
-    internal class Keys : IEnumerable<string>
-    {
-        public Keys(PilePointer root, IPile pile)
-        {
-            m_Root = root;
-            m_Pile = pile;
-        }
 
-        private PilePointer m_Root;
-        private IPile m_Pile;
 
-        public IEnumerator<string> GetEnumerator()
-        {
-            return new Keys.KeysEnumenator(m_Root, m_Pile);
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        internal class KeysEnumenator : IEnumerator<string>
-        {
-
-            public KeysEnumenator(PilePointer root, IPile pile)
-            {
-                m_Root = root;
-                m_Pile = pile;
-                Reset();
-            }
-            
-            private PilePointer m_Root;
-            private IPile m_Pile;
-            private List<KeyValuePair<string, PilePointer>> stack;
-            private int i;
-            private PrefixTreeNode currentNode;
-            private string strKey;
-
-            private string currentKey;
-
-            public void Dispose()
-            {
-                // throw new NotImplementedException();
-            }
-
-            public bool MoveNext()
-            {
-                currentKey = "";
-                while (stack.Any())
-                {
-                    if(i < 0) {
-                        var currentPP = stack[0].Value;
-                        strKey = stack[0].Key;
-                        stack.RemoveAt(0);
-                        currentNode = (PrefixTreeNode) m_Pile.Get(currentPP);
-                        for (int j = 0; j < currentNode.Children.Length; j++)
-                        {
-                            if(currentNode.Children[j].ValuePP != PilePointer.Invalid) 
-                                stack.Add(new KeyValuePair<string, PilePointer>(strKey + currentNode.Children[j].Key, (currentNode.Children[j].ValuePP)));
-                        }
-                        i = 0;
-                    }
-                    var find = false;
-                    while (i < currentNode.Children.Length)
-                    {
-                        Entry entry = currentNode.Children[i];
-                        i++;
-                        if (entry.ValuePP != PilePointer.Invalid)
-                        {
-                            PrefixTreeNode node = (PrefixTreeNode) m_Pile.Get(entry.ValuePP);
-                            if (node.ValuePP != PilePointer.Invalid)
-                            {
-                                currentKey = strKey + entry.Key;
-                                find = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (find) break;
-                    i = -1;
-                }
-                
-                return !currentKey.IsNullOrEmpty();
-            }
-
-            public void Reset()
-            {
-                stack = new List<KeyValuePair<string, PilePointer>>() {new KeyValuePair<string, PilePointer>("", m_Root)};
-                i = -1;
-            }
-
-            public string Current
-            {
-                get
-                {
-                    return currentKey; 
-                    
-                }
-            }
-
-            object IEnumerator.Current
-            {
-                get { return Current; }
-            }
-        }
-    }
 }

@@ -76,11 +76,11 @@ namespace NFX.Utils
         {
             using (var test = new PrefixTree<int>(m_Pile))
             {
-                for (int i = 9; i >= 0; i--)
+                for (int i = 12; i >= 0; i--)
                 {
                     test["{0}".Args(i)] = i;
                 }
-                for(int i=0; i< 10; i++)
+                for(int i=0; i< 12; i++)
                 {
                     Console.Write("{0}".Args(i));
                     Console.Write(" = ");
@@ -130,6 +130,7 @@ namespace NFX.Utils
                     test["a--{0}".Args(i)] = i;
                 }
                 var keys = new List<string>(test.Keys);
+                
                 foreach (var key in keys)
                 {
                     Console.WriteLine(key);
@@ -216,25 +217,29 @@ namespace NFX.Utils
 
         [TestCase(10000)]
         [TestCase(100000)]
+        [TestCase(1000000)]
+        [TestCase(10000000)]
         public void SimpleMassivTest(int count)
         {
             using (var test = new PrefixTree<int>(m_Pile))
             {
                 String lastKey = "";
                 Console.WriteLine(DateTime.Now);
+                int max = 0;
                 for (int i = 0; i < count; i++)
                 {
-                    int m = 0;
-                    if(i == count -1 ) m = DateTime.Now.Millisecond; 
+                    int ms = DateTime.Now.Millisecond; 
                     string key = Guid.NewGuid().ToString();
                     // key = "TEST KEY {0}".Args(i);
                     key = key.Substring(0, 3)+" "+i.ToString();
                     test[key] = i;
                     lastKey = key;
-                    if(i == count -1 ) Console.WriteLine("\t"+(DateTime.Now.Millisecond - m).ToString()); 
+                    int me = DateTime.Now.Millisecond;
+                    if (me - ms < max) max = me - ms;
                 }
+                Console.WriteLine("\t"+max);
                 
-/*                Console.WriteLine(DateTime.Now);
+                Console.WriteLine(DateTime.Now);
                 Console.WriteLine(m_Pile.ObjectCount);
                 Console.WriteLine(DateTime.Now);
                 List<string> keys = new List<string>(test.Keys);
@@ -248,7 +253,7 @@ namespace NFX.Utils
                 }
                 Console.WriteLine();
                 Console.WriteLine(DateTime.Now);
-                Console.WriteLine(keys.Find(s => s == lastKey));*/
+                Console.WriteLine(keys.Find(s => s == lastKey));
                 Console.WriteLine(DateTime.Now);
                 Console.WriteLine(test[lastKey]);
                 Console.WriteLine(DateTime.Now);
@@ -280,6 +285,9 @@ namespace NFX.Utils
             Console.WriteLine(DateTime.Now);
         }
 
+        [TestCase(10000)]
+        [TestCase(100000)]
+        [TestCase(1000000)]
         [TestCase(10000000)]
         public void getKeyValuePairsTest(int count)
         {
@@ -291,12 +299,25 @@ namespace NFX.Utils
                     test[FID.Generate().ToString()] = i;
                 }
                 Console.WriteLine(DateTime.Now);
-                KeyValuePair<string, int>[] keyValuePairs = test.getKeyValuePairs();
-                Console.WriteLine(keyValuePairs.Length);
+                List<KeyValuePair<string, int>> keyValuePairs = new List<KeyValuePair<string, int>>(test.getKeyValuePairs());
+                Console.WriteLine(keyValuePairs.Count);
+                Console.WriteLine(DateTime.Now);
+                Console.WriteLine(new List<String>(test.Keys).Count);
                 Console.WriteLine(DateTime.Now);
             }
             Console.WriteLine(m_Pile.ObjectCount);
             Console.WriteLine(DateTime.Now);
+        }
+
+        [Test]
+        public void TestDefaultPilePointer()
+        {
+            var pp = m_Pile.Put(666);
+            var pp1 = default(PilePointer);
+            Console.Write(pp);
+            Console.Write(" != ");
+            Console.WriteLine(pp1);
+            Aver.AreNotEqual(pp, pp1);
         }
 
     }
