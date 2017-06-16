@@ -9,8 +9,11 @@ namespace NFX.Utils
 {
     public class PrefixTree<T>: DisposableObject, IEnumerable<KeyValuePair<string, T>>
     {
-        public static readonly int SIZE = 10;
+        #region CONSTS
 
+        public static readonly int SIZE = 2;
+        
+        #endregion
         #region .ctor
 
         public PrefixTree(IPile pile)
@@ -19,7 +22,14 @@ namespace NFX.Utils
             var tmp = newPrefixTreeNode();
             m_Root = m_Pile.Put(tmp);
         }
-        
+
+        protected override void Destructor()
+        {
+            var test = m_Pile as DefaultPile;
+            if (test != null && test.Status == ControlStatus.Active) clearAll();
+            base.Destructor();
+        }
+
         #endregion
 
         #region Fields
@@ -65,6 +75,32 @@ namespace NFX.Utils
             return result;
         }
 
+        public KeyValuePair<string, T>[] getKeyValuePairs()
+        {
+            KeyValuePair<string, T>[] result = new KeyValuePair<string, T>[Count];
+            var i = 0;
+            getNextValuePairs(ref result, m_Root, i, "");
+            return result;
+        }
+        
+        private void getNextValuePairs(ref KeyValuePair<string, T>[] result, PilePointer pp, int i, string strKey)
+        {
+            if (pp == PilePointer.Invalid) return;
+            var current = (PrefixTreeNode) m_Pile.Get(pp);
+            if (current.ValuePP != PilePointer.Invalid) result[i++] = new KeyValuePair<string, T>(strKey, (T)m_Pile.Get(current.ValuePP));
+            foreach(Entry entry in current.Children)
+            {
+                if (entry.ValuePP != PilePointer.Invalid)
+                {
+                    getNextValuePairs(ref result, entry.ValuePP, i, strKey + entry.Key);
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
         public IEnumerator<KeyValuePair<string, T>> GetEnumerator()
         {
             throw new System.NotImplementedException();
@@ -79,12 +115,7 @@ namespace NFX.Utils
         #endregion
 
         #region Protected
-        protected override void Destructor()
-        {
-            var test = m_Pile as DefaultPile;
-            if (test != null && test.Status == ControlStatus.Active) clearAll();
-            base.Destructor();
-        }
+
         #endregion
 
         #region .pvt
@@ -169,7 +200,6 @@ namespace NFX.Utils
                             current.Children[i].Key = charKey;
                             current.Children[i].ValuePP = m_Pile.Put(tmp);
                             m_Pile.Put(currentPP, current);
-                            m_Count++;
                         }
                         else
                         {
@@ -189,7 +219,6 @@ namespace NFX.Utils
                         current.Children[i].Key = charKey;
                         current.Children[i].ValuePP = m_Pile.Put(tmp);
                         m_Pile.Put(currentPP, current);
-                        m_Count++;
                     }
                 }
                 currentPP = current.Children[i].ValuePP;
@@ -203,6 +232,7 @@ namespace NFX.Utils
             {
                 current.ValuePP = m_Pile.Put(value);
                 m_Pile.Put(currentPP, current);
+                m_Count++;
             }
         }
 
@@ -217,22 +247,23 @@ namespace NFX.Utils
 
         private void clearAll()
         {
-            var stack = new List<PilePointer> {m_Root};
-            while (stack.Any())
+            clearItem(m_Root);
+            m_Root = PilePointer.Invalid;
+        }
+
+        private void clearItem(PilePointer pp)
+        {
+            if (pp == PilePointer.Invalid) return;
+            PrefixTreeNode current = (PrefixTreeNode)m_Pile.Get(pp);
+            foreach(Entry entry in current.Children)
             {
-                var currentPP = stack[0];
-                var current = (PrefixTreeNode) m_Pile.Get(currentPP);
-                foreach (var entry in current.Children)
+                if (entry.ValuePP != PilePointer.Invalid)
                 {
-                    if(entry.ValuePP != PilePointer.Invalid) stack.Add(entry.ValuePP);
+                    clearItem(entry.ValuePP);
                 }
-                if (current.ValuePP != PilePointer.Invalid) m_Pile.Delete(current.ValuePP);
-                if (currentPP != PilePointer.Invalid)
-                {
-                    m_Pile.Delete(currentPP);
-                    stack.Remove(currentPP);
-                }
-            }                    
+            }
+            if (current.ValuePP != PilePointer.Invalid) m_Pile.Delete(current.ValuePP);
+            m_Pile.Delete(pp);
         }
 
         private IEnumerable<string> makeKeys()

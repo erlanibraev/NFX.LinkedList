@@ -155,7 +155,7 @@ namespace NFX.Utils
                 {
                     test["{0}".Args(i)] = i;
                 }
-                Aver.AreEqual(test.Count, 1000);
+                Aver.AreEqual(test.Count, COUNT);
                 var rnd = new Random();
                 int[] delete = {rnd.Next(COUNT), rnd.Next(COUNT)};
                 Array.Sort(delete) ;
@@ -216,8 +216,6 @@ namespace NFX.Utils
 
         [TestCase(10000)]
         [TestCase(100000)]
-        [TestCase(1000000)]
-        [TestCase(10000000)]
         public void SimpleMassivTest(int count)
         {
             using (var test = new PrefixTree<int>(m_Pile))
@@ -260,7 +258,7 @@ namespace NFX.Utils
         }
 
         [TestCase(1000000)]
-        public void SimpleMassivTestWithoutDestry(int count)
+        public void SimpleMassivWithoutDestryTest(int count)
         {
             var test = new PrefixTree<int>(m_Pile);
             String lastKey = "";
@@ -281,5 +279,25 @@ namespace NFX.Utils
             Console.WriteLine(test[lastKey]);
             Console.WriteLine(DateTime.Now);
         }
+
+        [TestCase(10000000)]
+        public void getKeyValuePairsTest(int count)
+        {
+            using(var test = new PrefixTree<int>(m_Pile))
+            {
+                Console.WriteLine(DateTime.Now);
+                for (int i=0; i< count; i++)
+                {
+                    test[FID.Generate().ToString()] = i;
+                }
+                Console.WriteLine(DateTime.Now);
+                KeyValuePair<string, int>[] keyValuePairs = test.getKeyValuePairs();
+                Console.WriteLine(keyValuePairs.Length);
+                Console.WriteLine(DateTime.Now);
+            }
+            Console.WriteLine(m_Pile.ObjectCount);
+            Console.WriteLine(DateTime.Now);
+        }
+
     }
 }
