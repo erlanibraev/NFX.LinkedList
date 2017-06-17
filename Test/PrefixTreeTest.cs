@@ -318,15 +318,20 @@ namespace NFX.Utils
         {
             string[] keys = new string[count];
             var rnd = new Random();
+            DateTime start;
+            DateTime end;
             using (var test = new PrefixTree<int>(m_Pile))
             {
-                Console.WriteLine(DateTime.Now);
+                start = DateTime.Now;
+                Console.WriteLine(start);
                 for (int i = 0; i < count; i++)
                 {
                     keys[i] = FID.Generate().ToString();
                     test.Put(keys[i], i);
                 }
-                Console.WriteLine(DateTime.Now);
+                end = DateTime.Now;
+                Console.WriteLine(end);
+                Console.WriteLine(end.Subtract(start));
                 if (count < 11)
                 {
                     foreach (string key in test.Keys)
@@ -342,7 +347,8 @@ namespace NFX.Utils
             }
             using (var test1 = new PrefixTree<int>(m_Pile))
             {
-                Console.WriteLine(DateTime.Now);
+                start = DateTime.Now;
+                Console.WriteLine(start);
                 for (int i = 0; i < count; i++)
                 {
                     try
@@ -357,11 +363,14 @@ namespace NFX.Utils
                     }
 
                 }
-                Console.WriteLine(DateTime.Now);
+                end = DateTime.Now;
+                Console.WriteLine(end);
+                Console.WriteLine(end.Subtract(start));
                 Console.WriteLine(test1[keys[rnd.Next(count)]]);
                 Console.WriteLine(DateTime.Now);
             }
-            Console.WriteLine(DateTime.Now);
+            start = DateTime.Now;
+            Console.WriteLine(start);
             Dictionary<string, int> test2 = new Dictionary<string, int>();
             for (int i = 0; i < count; i++)
             {
@@ -377,9 +386,19 @@ namespace NFX.Utils
                 }
 
             }
+            end = DateTime.Now;
+            Console.WriteLine(end);
+            Console.WriteLine(end.Subtract(start));
             Console.WriteLine(DateTime.Now);
             Console.WriteLine(test2[keys[rnd.Next(count)]]);
             Console.WriteLine(DateTime.Now);
+            start = DateTime.Now;
+            Console.WriteLine(start);
+            var test3 = new SortedDictionary<string, int>(test2);
+            end = DateTime.Now;
+            Console.WriteLine(end);
+            Console.WriteLine(test3[keys[rnd.Next(count)]]);
+            Console.WriteLine(end.Subtract(start));
         }
 
     }

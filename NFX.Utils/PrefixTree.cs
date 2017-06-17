@@ -106,48 +106,7 @@ namespace NFX.Utils
             putValue(m_Root, key, value, "", 0);
         }
 
-        private void putValue(PilePointer currentPP, string key, T value, string strKey, int i)
-        {
-            if (i > key.Length) throw new IndexOutOfRangeException();
-            if (currentPP == default(PilePointer)) throw new IndexOutOfRangeException();
-            var current = (PrefixTreeNode) m_Pile.Get(currentPP);
-            if (key == strKey)
-            {
-                if (current.ValuePP != default(PilePointer))
-                {
-                    m_Pile.Put(current.ValuePP, value);
-                }
-                else
-                {
-                    current.ValuePP = m_Pile.Put(value);
-                    m_Pile.Put(currentPP, current);
-                    m_Count++;
-                }
-                return;
-            }
-            for (int j = 0; j < current.Children.Length; j++)
-            {
-                if (current.Children[j].ValuePP == default(PilePointer))
-                {
-                    var tmp = newPrefixTreeNode();
-                    Entry entry = new Entry(){Key = key[i], ValuePP = m_Pile.Put(tmp)};
-                    insertEntry(j,ref current.Children, entry);
-                    m_Pile.Put(currentPP, current);
-                }
-                else if (current.Children[j].Key > key[i])
-                {
-                    var tmp = newPrefixTreeNode();
-                    Entry entry = new Entry(){Key = key[i], ValuePP = m_Pile.Put(tmp)};
-                    insertEntry(j,ref current.Children, entry);
-                    m_Pile.Put(currentPP, current);
-                }
-                if (current.Children[j].Key == key[i])
-                {
-                    putValue(current.Children[j].ValuePP, key, value, strKey + current.Children[j].Key, i + 1);
-                    break;
-                }
-            }
-        }
+        
 
         public IEnumerator<KeyValuePair<string, T>> GetEnumerator()
         {
@@ -217,50 +176,78 @@ namespace NFX.Utils
             return contains ? currentPP : default(PilePointer);
         }
 
+        private void putValue(PilePointer currentPP, string key, T value, string strKey, int i)
+        {
+            if (i > key.Length) throw new IndexOutOfRangeException();
+            if (currentPP == default(PilePointer)) throw new IndexOutOfRangeException();
+            var current = (PrefixTreeNode)m_Pile.Get(currentPP);
+            if (key == strKey)
+            {
+                if (current.ValuePP != default(PilePointer))
+                {
+                    m_Pile.Put(current.ValuePP, value);
+                }
+                else
+                {
+                    current.ValuePP = m_Pile.Put(value);
+                    m_Pile.Put(currentPP, current);
+                    m_Count++;
+                }
+                return;
+            }
+            for (int j = 0; j < current.Children.Length; j++)
+            {
+                if (current.Children[j].ValuePP == default(PilePointer))
+                {
+                    var tmp = newPrefixTreeNode();
+                    Entry entry = new Entry() { Key = key[i], ValuePP = m_Pile.Put(tmp) };
+                    insertEntry(j, ref current.Children, entry);
+                    m_Pile.Put(currentPP, current);
+                }
+                else if (current.Children[j].Key > key[i])
+                {
+                    var tmp = newPrefixTreeNode();
+                    Entry entry = new Entry() { Key = key[i], ValuePP = m_Pile.Put(tmp) };
+                    insertEntry(j, ref current.Children, entry);
+                    m_Pile.Put(currentPP, current);
+                }
+                if (current.Children[j].Key == key[i])
+                {
+                    putValue(current.Children[j].ValuePP, key, value, strKey + current.Children[j].Key, i + 1);
+                    break;
+                }
+            }
+        }
+
         private void setValue(string key, T value)
         {
             char[] keys = key.ToCharArray();
             string strKey = "";
             PilePointer currentPP = m_Root;
             PrefixTreeNode current = (PrefixTreeNode)m_Pile.Get(currentPP);
-            bool contains = false;
             foreach(char charKey in keys)
             {
                 strKey += charKey;
                 int i = 0;
-                contains = false;
                 for(i = 0; i < current.Children.Length; i++)
                 {
-                    if (current.Children[i].Key > charKey || current.Children[i].ValuePP == default(PilePointer)) break;
-                    if (current.Children[i].Key == charKey)
+                    if (current.Children[i].ValuePP == default(PilePointer))
                     {
-                        contains = true;
-                        break;
-                    }
-                }
-                if(!contains)
-                {
-                    var tmp = newPrefixTreeNode();
-                    if (i < current.Children.Length)
-                    {
-                        if(current.Children[i].ValuePP == default(PilePointer))
-                        {
-                            current.Children[i].Key = charKey;
-                            current.Children[i].ValuePP = m_Pile.Put(tmp);
-                            m_Pile.Put(currentPP, current);
-                        }
-                        else
-                        {
-                            Entry entry = new Entry() { Key = charKey, ValuePP = m_Pile.Put(tmp) };
-                            insertEntry(i, ref current.Children, entry);
-                            m_Pile.Put(currentPP, current);
-                        }
-                    } 
-                    else
-                    {
+                        var tmp = newPrefixTreeNode();
                         Entry entry = new Entry() { Key = charKey, ValuePP = m_Pile.Put(tmp) };
                         insertEntry(i, ref current.Children, entry);
                         m_Pile.Put(currentPP, current);
+                    }
+                    else if (current.Children[i].Key > charKey)
+                    {
+                        var tmp = newPrefixTreeNode();
+                        Entry entry = new Entry() { Key = charKey, ValuePP = m_Pile.Put(tmp) };
+                        insertEntry(i, ref current.Children, entry);
+                        m_Pile.Put(currentPP, current);
+                    }
+                    if (current.Children[i].Key == charKey)
+                    {
+                        break;
                     }
                 }
                 currentPP = current.Children[i].ValuePP;
