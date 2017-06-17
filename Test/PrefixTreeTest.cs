@@ -309,16 +309,51 @@ namespace NFX.Utils
             Console.WriteLine(DateTime.Now);
         }
 
-        [Test]
-        public void TestDefaultPilePointer()
+        [TestCase(5)]
+        [TestCase(10000)]
+        [TestCase(100000)]
+        [TestCase(1000000)]
+        [TestCase(10000000)]
+        public void PutValueSimpleTest(int count)
         {
-            var pp = m_Pile.Put(666);
-            var pp1 = default(PilePointer);
-            Console.Write(pp);
-            Console.Write(" != ");
-            Console.WriteLine(pp1);
-            Aver.AreNotEqual(pp, pp1);
-        }
+            using (var test = new PrefixTree<int>(m_Pile))
+            {
+                var test1 = new PrefixTree<int>(m_Pile);
+                string[] keys = new string[count];
+                Console.WriteLine(DateTime.Now);
+                for (int i = 0; i < count; i++)
+                {
+                    keys[i] = FID.Generate().ToString();
+                    test.Put(keys[i], i);
+                }
+                Console.WriteLine(DateTime.Now);
+                if (count < 11)
+                {
+                    foreach (string key in test.Keys)
+                    {
+                        Console.Write(key);
+                        Console.Write(" = ");
+                        Console.WriteLine(test[key]);
+                    }
+                    Console.WriteLine(DateTime.Now);
+                }
+                for (int i = 0; i < count; i++)
+                {
+                    try
+                    {
+                        test1[keys[i]] = i;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.Write("Error: ");
+                        Console.WriteLine(keys[i]);
+                        Console.WriteLine(test.Count);
+                    }
+                    
+                }
+                Console.WriteLine(DateTime.Now);
+            }
+        } 
 
     }
 }

@@ -101,6 +101,54 @@ namespace NFX.Utils
             }
         }
 
+        public void Put(string key, T value)
+        {
+            putValue(m_Root, key, value, "", 0);
+        }
+
+        private void putValue(PilePointer currentPP, string key, T value, string strKey, int i)
+        {
+            if (i > key.Length) throw new IndexOutOfRangeException();
+            if (currentPP == default(PilePointer)) throw new IndexOutOfRangeException();
+            var current = (PrefixTreeNode) m_Pile.Get(currentPP);
+            if (key == strKey)
+            {
+                if (current.ValuePP != default(PilePointer))
+                {
+                    m_Pile.Put(current.ValuePP, value);
+                }
+                else
+                {
+                    current.ValuePP = m_Pile.Put(value);
+                    m_Pile.Put(currentPP, current);
+                    m_Count++;
+                }
+                return;
+            }
+            for (int j = 0; j < current.Children.Length; j++)
+            {
+                if (current.Children[j].ValuePP == default(PilePointer))
+                {
+                    var tmp = newPrefixTreeNode();
+                    Entry entry = new Entry(){Key = key[i], ValuePP = m_Pile.Put(tmp)};
+                    insertEntry(j,ref current.Children, entry);
+                    m_Pile.Put(currentPP, current);
+                }
+                else if (current.Children[j].Key > key[i])
+                {
+                    var tmp = newPrefixTreeNode();
+                    Entry entry = new Entry(){Key = key[i], ValuePP = m_Pile.Put(tmp)};
+                    insertEntry(j,ref current.Children, entry);
+                    m_Pile.Put(currentPP, current);
+                }
+                if (current.Children[j].Key == key[i])
+                {
+                    putValue(current.Children[j].ValuePP, key, value, strKey + current.Children[j].Key, i + 1);
+                    break;
+                }
+            }
+        }
+
         public IEnumerator<KeyValuePair<string, T>> GetEnumerator()
         {
             throw new System.NotImplementedException();
