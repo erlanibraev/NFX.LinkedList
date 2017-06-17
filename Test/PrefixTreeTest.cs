@@ -316,10 +316,10 @@ namespace NFX.Utils
         [TestCase(10000000)]
         public void PutValueSimpleTest(int count)
         {
+            string[] keys = new string[count];
+            var rnd = new Random();
             using (var test = new PrefixTree<int>(m_Pile))
             {
-                var test1 = new PrefixTree<int>(m_Pile);
-                string[] keys = new string[count];
                 Console.WriteLine(DateTime.Now);
                 for (int i = 0; i < count; i++)
                 {
@@ -336,7 +336,13 @@ namespace NFX.Utils
                         Console.WriteLine(test[key]);
                     }
                     Console.WriteLine(DateTime.Now);
+                    Console.WriteLine(test[keys[rnd.Next(count)]]);
+                    Console.WriteLine(DateTime.Now);
                 }
+            }
+            using (var test1 = new PrefixTree<int>(m_Pile))
+            {
+                Console.WriteLine(DateTime.Now);
                 for (int i = 0; i < count; i++)
                 {
                     try
@@ -347,13 +353,34 @@ namespace NFX.Utils
                     {
                         Console.Write("Error: ");
                         Console.WriteLine(keys[i]);
-                        Console.WriteLine(test.Count);
+                        Console.WriteLine(test1.Count);
                     }
-                    
+
                 }
                 Console.WriteLine(DateTime.Now);
+                Console.WriteLine(test1[keys[rnd.Next(count)]]);
+                Console.WriteLine(DateTime.Now);
             }
-        } 
+            Console.WriteLine(DateTime.Now);
+            Dictionary<string, int> test2 = new Dictionary<string, int>();
+            for (int i = 0; i < count; i++)
+            {
+                try
+                {
+                    test2[keys[i]] = i;
+                }
+                catch (Exception ex)
+                {
+                    Console.Write("Error: ");
+                    Console.WriteLine(keys[i]);
+                    Console.WriteLine(test2.Count);
+                }
+
+            }
+            Console.WriteLine(DateTime.Now);
+            Console.WriteLine(test2[keys[rnd.Next(count)]]);
+            Console.WriteLine(DateTime.Now);
+        }
 
     }
 }
